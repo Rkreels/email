@@ -92,61 +92,10 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { initialEmails } from "./emails-data";
-
-// Types
-type Folder = {
-  id: string;
-  name: string;
-  icon: React.ElementType;
-  count?: number;
-};
-
-type EmailLabel = {
-  id: string;
-  name: string;
-  color: string;
-};
-
-type EmailAttachment = {
-  id: string;
-  name: string;
-  size: string;
-  type: string;
-  url: string;
-};
-
-type Email = {
-  id: string;
-  from: {
-    name: string;
-    email: string;
-    avatar?: string;
-  };
-  to: {
-    name: string;
-    email: string;
-    avatar?: string;
-  };
-  subject: string;
-  message: string;
-  time: string;
-  labels: string[];
-  read: boolean;
-  starred: boolean;
-  important: boolean;
-  attachments?: EmailAttachment[];
-  thread?: Email[];
-  folder?: string;
-};
-
-type User = {
-  name: string;
-  email: string;
-  avatar?: string;
-};
+import type { Email, Folder, EmailLabel, EmailAttachment, User as UserType } from "./email-types";
 
 // Mock data
-const currentUser: User = {
+const currentUser: UserType = {
   name: "Alex Morgan",
   email: "alex@example.com",
   avatar: "/placeholder.svg?height=40&width=40",
@@ -293,6 +242,8 @@ function DownloadIcon(props: React.ComponentProps<typeof ArrowLeft>) {
 export function GmailApp() {
   // State
   const [emails, setEmails] = useState<Email[]>(initialEmails);
+  // Initialize with 50 emails - all loaded from emails-data.tsx
+  console.log('DEBUG: Initial emails loaded:', initialEmails.length);
   const [selectedFolder, setSelectedFolder] = useState<string>("inbox");
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
@@ -321,7 +272,7 @@ export function GmailApp() {
 
   // Filter emails based on selected folder and search query
   const filteredEmails = useMemo(() => {
-    return emails.filter((email) => {
+    const result = emails.filter((email) => {
       const matchesSearch =
         searchQuery === "" ||
         email.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -329,7 +280,7 @@ export function GmailApp() {
         email.message.toLowerCase().includes(searchQuery.toLowerCase());
 
       const emailFolder = email.folder || "inbox";
-      
+
       if (selectedFolder === "inbox") return emailFolder === "inbox" && matchesSearch;
       if (selectedFolder === "starred") return email.starred && matchesSearch;
       if (selectedFolder === "sent") return emailFolder === "sent" && matchesSearch;
@@ -351,6 +302,8 @@ export function GmailApp() {
 
       return matchesSearch;
     });
+    console.log('DEBUG: Total emails:', emails.length, 'Filtered emails:', result.length, 'Selected folder:', selectedFolder);
+    return result;
   }, [emails, selectedFolder, searchQuery]);
 
   // Find current email index and navigate
@@ -1006,8 +959,14 @@ export function GmailApp() {
             {/* Email list or Email view - conditional rendering without absolute positioning */}
             {!selectedEmail ? (
               /* Email list view */
-              <ScrollArea className="flex-1">
-                <div className="divide-y divide-gray-100">
+              <>
+                <div className="border-b border-gray-200 px-4 py-2 bg-gray-50">
+                  <span className="text-sm text-gray-600 font-medium">
+                    {filteredEmails.length} emails in {folders.find(f => f.id === selectedFolder)?.name || selectedFolder}
+                  </span>
+                </div>
+                <ScrollArea className="flex-1">
+                  <div className="divide-y divide-gray-100">
                   {filteredEmails.length > 0 ? (
                     filteredEmails.map((email) => (
                       <ContextMenu key={email.id}>
@@ -1157,7 +1116,8 @@ export function GmailApp() {
                     </div>
                   )}
                 </div>
-              </ScrollArea>
+                </ScrollArea>
+              </>
             ) : (
               /* Email detail view */
               <div className="flex flex-1 flex-col overflow-hidden">

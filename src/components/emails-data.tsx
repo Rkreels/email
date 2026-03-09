@@ -1,4 +1,4 @@
-import type { Email, EmailAttachment } from "./email-app";
+import type { Email, EmailAttachment } from "./email-types";
 
 const attachments: EmailAttachment[] = [
   {
