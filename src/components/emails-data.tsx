@@ -3699,4 +3699,1057 @@ Executive Team`,
       ),
     ]
   ),
+
+  // ==================== DRAFTS ====================
+  createEmail(
+    "draft-1",
+    { name: "Alex Morgan", email: "alex@example.com" },
+    "Quarterly Report Draft",
+    `Hi Team,
+
+I'm working on the Q3 quarterly report and wanted to share my draft.
+
+Key highlights so far:
+- Revenue increased by 15%
+- New customer acquisition is up 20%
+- Customer satisfaction score: 4.8/5
+
+Please review and let me know your thoughts.
+
+[TODO: Add more details about product performance]
+[TODO: Include team accomplishments]
+
+Best,
+Alex`,
+    "Today, 2:30 PM",
+    ["work"],
+    true,
+    false,
+    false,
+    "drafts",
+    []
+  ),
+
+  createEmail(
+    "draft-2",
+    { name: "Alex Morgan", email: "alex@example.com" },
+    "Project Proposal: Mobile App Redesign",
+    `Dear stakeholders,
+
+I'm writing to propose a redesign of our mobile application.
+
+Current pain points:
+- User engagement has decreased
+- Navigation is confusing
+- Loading times are slow
+
+Proposed solution:
+- Modern UI/UX redesign
+- Performance optimization
+- New feature additions
+
+Budget estimate: $50,000
+Timeline: 3 months
+
+[Still need to finalize the budget breakdown]
+
+Regards,
+Alex`,
+    "Yesterday, 4:15 PM",
+    ["project", "work"],
+    true,
+    false,
+    false,
+    "drafts",
+    []
+  ),
+
+  createEmail(
+    "draft-3",
+    { name: "Alex Morgan", email: "alex@example.com" },
+    "Meeting Agenda: Product Launch",
+    `Team,
+
+Here's the agenda for tomorrow's product launch meeting:
+
+1. Review final launch checklist
+2. Marketing campaign status
+3. Support team readiness
+4. Q&A session
+
+Please come prepared with updates from your respective areas.
+
+Time: 10:00 AM
+Location: Conference Room B
+
+[Need to add attendees list]
+
+Thanks,
+Alex`,
+    "May 12, 9:00 AM",
+    ["meeting", "work"],
+    true,
+    false,
+    false,
+    "drafts",
+    []
+  ),
+
+  createEmail(
+    "draft-4",
+    { name: "Alex Morgan", email: "alex@example.com" },
+    "(No subject)",
+    `Hi,
+
+I wanted to follow up on our conversation from last week about the new project timeline.
+
+`,
+    "May 8, 3:45 PM",
+    [],
+    true,
+    false,
+    false,
+    "drafts",
+    []
+  ),
+
+  createEmail(
+    "draft-5",
+    { name: "Alex Morgan", email: "alex@example.com" },
+    "Vacation Request - June",
+    `Dear Manager,
+
+I would like to request vacation time from June 15th to June 25th.
+
+During my absence, [COLLEAGUE NAME] will be handling my responsibilities.
+
+I'll make sure all tasks are up to date before I leave.
+
+[Still need to confirm coverage]
+
+Best regards,
+Alex`,
+    "May 5, 11:20 AM",
+    ["personal"],
+    true,
+    false,
+    false,
+    "drafts",
+    []
+  ),
+
+  // ==================== SENT ====================
+  createEmail(
+    "sent-1",
+    { name: "Alex Morgan", email: "alex@example.com" },
+    "Re: Project Timeline Update",
+    `Thanks for the update, Ava.
+
+The timeline looks reasonable. Let's review the testing phase in more detail during our meeting tomorrow.
+
+Best,
+Alex`,
+    "May 11, 10:00 AM",
+    ["project", "work"],
+    true,
+    true,
+    false,
+    "sent",
+    [],
+    [
+      createEmail(
+        "sent-1-1",
+        { name: "Ava Taylor", email: "ava@example.com" },
+        "Re: Project Timeline Update",
+        `Great! I'll prepare a detailed breakdown of the testing phase for tomorrow's meeting.
+
+See you at 10 AM!
+
+Ava`,
+        "May 11, 10:30 AM",
+        ["project", "work"],
+        true,
+        false,
+        false
+      ),
+      createEmail(
+        "sent-1-2",
+        { name: "Alex Morgan", email: "alex@example.com" },
+        "Re: Project Timeline Update",
+        `Perfect, looking forward to it!
+
+Alex`,
+        "May 11, 10:45 AM",
+        ["project", "work"],
+        true,
+        false,
+        false
+      ),
+    ]
+  ),
+
+  createEmail(
+    "sent-2",
+    { name: "Alex Morgan", email: "alex@example.com" },
+    "Team Dinner Confirmation",
+    `Hi Sophia,
+
+Count me in for the team dinner! I'm available Thursday at 7:00 PM.
+
+No dietary restrictions from my side.
+
+Looking forward to it!
+
+Best,
+Alex`,
+    "Today, 11:30 AM",
+    ["work", "meeting"],
+    true,
+    true,
+    true,
+    "sent",
+    [],
+    [
+      createEmail(
+        "sent-2-1",
+        { name: "Sophia White", email: "sophiawhite@example.com" },
+        "Re: Team Dinner Confirmation",
+        `Awesome! I've updated the reservation for 7 people.
+
+See you Thursday!
+
+Sophia`,
+        "Today, 11:45 AM",
+        ["work", "meeting"],
+        true,
+        false,
+        false
+      ),
+    ]
+  ),
+
+  createEmail(
+    "sent-3",
+    { name: "Alex Morgan", email: "alex@example.com" },
+    "Meeting Request: Budget Review",
+    `Hi James,
+
+I'd like to schedule a meeting to review the monthly budget.
+
+How does tomorrow at 2:00 PM work for you?
+
+Best,
+Alex`,
+    "May 4, 10:00 AM",
+    ["finance", "work"],
+    true,
+    false,
+    false,
+    "sent",
+    [],
+    [
+      createEmail(
+        "sent-3-1",
+        { name: "James Wilson", email: "james@example.com" },
+        "Re: Meeting Request: Budget Review",
+        `Tomorrow at 2:00 PM works perfectly for me.
+
+I'll have the latest budget report ready for our review.
+
+See you then!
+
+James`,
+        "May 4, 10:30 AM",
+        ["finance", "work"],
+        true,
+        false,
+        false
+      ),
+      createEmail(
+        "sent-3-2",
+        { name: "Alex Morgan", email: "alex@example.com" },
+        "Re: Meeting Request: Budget Review",
+        `Great, thanks James!
+
+Alex`,
+        "May 4, 10:35 AM",
+        ["finance", "work"],
+        true,
+        false,
+        false
+      ),
+      createEmail(
+        "sent-3-3",
+        { name: "James Wilson", email: "james@example.com" },
+        "Re: Meeting Request: Budget Review",
+        `Also, I've prepared some visualizations that should help explain the variances.
+
+Looking forward to a productive discussion!
+
+James`,
+        "May 4, 11:00 AM",
+        ["finance", "work"],
+        true,
+        false,
+        false
+      ),
+    ]
+  ),
+
+  createEmail(
+    "sent-4",
+    { name: "Alex Morgan", email: "alex@example.com" },
+    "Congratulations on the Promotion!",
+    `Dear Noah,
+
+Congratulations on your well-deserved promotion! Your hard work and dedication have truly paid off.
+
+Looking forward to working together in your new role.
+
+Best wishes,
+Alex`,
+    "May 2, 3:30 PM",
+    ["personal", "work"],
+    true,
+    true,
+    false,
+    "sent",
+    [],
+    [
+      createEmail(
+        "sent-4-1",
+        { name: "Noah Martinez", email: "noah@example.com" },
+        "Re: Congratulations on the Promotion!",
+        `Thank you so much, Alex! Your support and mentorship have been invaluable to my growth here.
+
+I'm excited about the new challenges ahead and can't wait to collaborate with you on future projects.
+
+Best,
+Noah`,
+        "May 2, 4:00 PM",
+        ["personal", "work"],
+        true,
+        false,
+        false
+      ),
+      createEmail(
+        "sent-4-2",
+        { name: "Alex Morgan", email: "alex@example.com" },
+        "Re: Congratulations on the Promotion!",
+        `You deserve it, Noah! I'm confident you'll do great things in your new position.
+
+Let's grab coffee this week to discuss the transition.
+
+Alex`,
+        "May 2, 4:15 PM",
+        ["personal", "work"],
+        true,
+        false,
+        false
+      ),
+    ]
+  ),
+
+  createEmail(
+    "sent-5",
+    { name: "Alex Morgan", email: "alex@example.com" },
+    "Feedback on Design Mockups",
+    `Hi Mike,
+
+I've reviewed the new dashboard designs. Overall, they look great!
+
+A few suggestions:
+1. Consider increasing contrast on the secondary buttons
+2. The data visualization charts are excellent
+3. Dark mode version looks polished
+
+Great work!
+
+Alex`,
+    "Apr 30, 2:15 PM",
+    ["work", "project"],
+    true,
+    false,
+    false,
+    "sent",
+    [],
+    [
+      createEmail(
+        "sent-5-1",
+        { name: "Mike Thompson", email: "mike@example.com" },
+        "Re: Feedback on Design Mockups",
+        `Thanks for the detailed feedback, Alex!
+
+I really appreciate the points about contrast. I'll work on adjusting the secondary button colors and will share updated mockups by end of day.
+
+Glad you like the charts - those took some time to get right!
+
+Mike`,
+        "Apr 30, 3:00 PM",
+        ["work", "project"],
+        true,
+        false,
+        false
+      ),
+      createEmail(
+        "sent-5-2",
+        { name: "Alex Morgan", email: "alex@example.com" },
+        "Re: Feedback on Design Mockups",
+        `Sounds good, Mike! The charts definitely show the effort.
+
+Looking forward to seeing the updated designs.
+
+Alex`,
+        "Apr 30, 3:15 PM",
+        ["work", "project"],
+        true,
+        false,
+        false
+      ),
+      createEmail(
+        "sent-5-3",
+        { name: "Mike Thompson", email: "mike@example.com" },
+        "Re: Feedback on Design Mockups",
+        `Hi Alex,
+
+Here are the updated mockups! I've increased the contrast on the secondary buttons and made a few other minor adjustments based on your feedback.
+
+Let me know what you think!
+
+Best,
+Mike`,
+        "Apr 30, 5:30 PM",
+        ["work", "project"],
+        true,
+        false,
+        false
+      ),
+    ]
+  ),
+
+  createEmail(
+    "sent-6",
+    { name: "Alex Morgan", email: "alex@example.com" },
+    "Invoice #12345 - Payment Confirmation",
+    `Dear Billing Department,
+
+Please find attached the invoice #12345 for services rendered in April.
+
+Payment terms: Net 30
+Amount: $5,000
+
+Please let me know if you need any additional information.
+
+Best regards,
+Alex Morgan`,
+    "Apr 28, 11:00 AM",
+    ["finance"],
+    true,
+    false,
+    false,
+    "sent",
+    [attachments[0]],
+    [
+      createEmail(
+        "sent-6-1",
+        { name: "Billing Team", email: "billing@company.com" },
+        "Re: Invoice #12345 - Payment Confirmation",
+        `Hi Alex,
+
+Thank you for the invoice. We've received it and it's been entered into our payment system.
+
+Payment will be processed according to Net 30 terms. You should receive payment by May 28th.
+
+Let us know if you have any questions.
+
+Billing Team`,
+        "Apr 28, 2:00 PM",
+        ["finance"],
+        true,
+        false,
+        false
+      ),
+    ]
+  ),
+
+  createEmail(
+    "sent-7",
+    { name: "Alex Morgan", email: "alex@example.com" },
+    "Welcome to the Team!",
+    `Hi Sarah,
+
+Welcome to the team! We're excited to have you on board.
+
+Here are a few resources to get you started:
+- Employee handbook: [link]
+- Training materials: [link]
+- Team directory: [link]
+
+If you have any questions, feel free to reach out.
+
+Best,
+Alex`,
+    "Apr 25, 9:30 AM",
+    ["work"],
+    true,
+    true,
+    false,
+    "sent",
+    [],
+    [
+      createEmail(
+        "sent-7-1",
+        { name: "Sarah Johnson", email: "sarah@example.com" },
+        "Re: Welcome to the Team!",
+        `Hi Alex,
+
+Thank you so much for the warm welcome! I'm really excited to join the team.
+
+I've already started going through the employee handbook and training materials. Everything looks comprehensive and well-organized.
+
+Looking forward to meeting everyone and getting started!
+
+Best regards,
+Sarah`,
+        "Apr 25, 10:00 AM",
+        ["work"],
+        true,
+        false,
+        false
+      ),
+      createEmail(
+        "sent-7-2",
+        { name: "Alex Morgan", email: "alex@example.com" },
+        "Re: Welcome to the Team!",
+        `Glad to hear you're settling in well, Sarah!
+
+Don't hesitate to reach out if you need anything during your onboarding period.
+
+Alex`,
+        "Apr 25, 10:15 AM",
+        ["work"],
+        true,
+        false,
+        false
+      ),
+    ]
+  ),
+
+  createEmail(
+    "sent-8",
+    { name: "Alex Morgan", email: "alex@example.com" },
+    "Rescheduling Our Meeting",
+    `Hi David,
+
+Due to an unexpected conflict, I need to reschedule our meeting from Wednesday to Thursday at the same time.
+
+Does that work for you?
+
+Apologies for the inconvenience.
+
+Best,
+Alex`,
+    "Apr 22, 4:00 PM",
+    ["meeting", "work"],
+    true,
+    false,
+    false,
+    "sent",
+    [],
+    [
+      createEmail(
+        "sent-8-1",
+        { name: "David Kim", email: "david@example.com" },
+        "Re: Rescheduling Our Meeting",
+        `No problem, Alex! Thursday at the same time works perfectly for me.
+
+See you then!
+
+David`,
+        "Apr 22, 4:30 PM",
+        ["meeting", "work"],
+        true,
+        false,
+        false
+      ),
+    ]
+  ),
+
+  createEmail(
+    "sent-9",
+    { name: "Alex Morgan", email: "alex@example.com" },
+    "Thank You for Your Feedback",
+    `Dear Customer,
+
+Thank you for taking the time to provide feedback on our product.
+
+We appreciate your insights and will use them to improve our services.
+
+If you have any further suggestions, please don't hesitate to reach out.
+
+Best regards,
+Alex Morgan
+Customer Success Team`,
+    "Apr 20, 2:45 PM",
+    ["work"],
+    true,
+    false,
+    false,
+    "sent",
+    [],
+    []
+  ),
+
+  createEmail(
+    "sent-10",
+    { name: "Alex Morgan", email: "alex@example.com" },
+    "Weekend Hiking Trip - Final Details",
+    `Hi Emma,
+
+Final details for our hiking trip this weekend:
+
+Meeting point: My place at 7:45 AM
+Trail distance: Approximately 6 miles
+Estimated duration: 4 hours
+Weather forecast: Sunny, 75°F
+
+I've got the trail map printed out. See you Saturday!
+
+Cheers,
+Alex`,
+    "Apr 18, 6:00 PM",
+    ["personal"],
+    true,
+    false,
+    false,
+    "sent",
+    [],
+    [
+      createEmail(
+        "sent-10-1",
+        { name: "Emma Clark", email: "emma@example.com" },
+        "Re: Weekend Hiking Trip - Final Details",
+        `Perfect, Alex! Thanks for organizing everything.
+
+I'll bring some extra water and snacks for both of us.
+
+Can't wait for Saturday!
+
+Emma`,
+        "Apr 18, 6:30 PM",
+        ["personal"],
+        true,
+        false,
+        false
+      ),
+      createEmail(
+        "sent-10-2",
+        { name: "Alex Morgan", email: "alex@example.com" },
+        "Re: Weekend Hiking Trip - Final Details",
+        `Great! I've got lunch covered.
+
+See you bright and early Saturday!
+
+Alex`,
+        "Apr 18, 7:00 PM",
+        ["personal"],
+        true,
+        false,
+        false
+      ),
+    ]
+  ),
+
+  // ==================== TRASH ====================
+  createEmail(
+    "trash-1",
+    { name: "Newsletter Sender", email: "newsletter@example.com" },
+    "Weekly Tech Digest: Top Stories",
+    `This week in tech:
+
+1. New AI breakthrough announced
+2. Major software update released
+3. Industry conference highlights
+
+Unsubscribe | View in browser`,
+    "Apr 15, 8:00 AM",
+    [],
+    true,
+    false,
+    false,
+    "trash",
+    []
+  ),
+
+  createEmail(
+    "trash-2",
+    { name: "Promo Company", email: "promo@sales.com" },
+    "🔥 50% OFF - Limited Time Only!",
+    `Don't miss out on our biggest sale of the year!
+
+Use code: SAVE50
+
+Shop now!`,
+    "Apr 12, 10:30 AM",
+    [],
+    true,
+    false,
+    false,
+    "trash",
+    []
+  ),
+
+  createEmail(
+    "trash-3",
+    { name: "Unknown Sender", email: "unknown@spam.com" },
+    "You've Won a Prize!",
+    `Congratulations! You've been selected to receive a free gift.
+
+Click here to claim your prize now!`,
+    "Apr 10, 3:15 PM",
+    [],
+    true,
+    false,
+    false,
+    "trash",
+    []
+  ),
+
+  createEmail(
+    "trash-4",
+    { name: "Old Contact", email: "oldcontact@retired.com" },
+    "Re: Old Project Files",
+    `Hi Alex,
+
+Do you still have the files from the 2020 project? I'm trying to find some old documentation.
+
+Thanks,
+[Name]`,
+    "Mar 28, 9:00 AM",
+    ["work"],
+    true,
+    false,
+    false,
+    "trash",
+    []
+  ),
+
+  createEmail(
+    "trash-5",
+    { name: "Automated System", email: "noreply@system.com" },
+    "Your subscription has expired",
+    `Your subscription to Service XYZ has expired.
+
+Renew now to continue accessing all features.`,
+    "Mar 15, 12:00 PM",
+    [],
+    true,
+    false,
+    false,
+    "trash",
+    []
+  ),
+
+  // ==================== ARCHIVE ====================
+  createEmail(
+    "archive-1",
+    { name: "HR Department", email: "hr@company.com" },
+    "Annual Performance Review - 2023",
+    `Dear Alex,
+
+Your annual performance review for 2023 is now available.
+
+Please log into the HR portal to view your review and schedule a meeting with your manager.
+
+HR Team`,
+    "Jan 15, 9:00 AM",
+    ["work", "important"],
+    true,
+    false,
+    true,
+    "archive",
+    [attachments[3]],
+    [
+      createEmail(
+        "archive-1-1",
+        { name: "Alex Morgan", email: "alex@example.com" },
+        "Re: Annual Performance Review - 2023",
+        `Hi HR Team,
+
+Thanks for the notification. I've reviewed my performance review in the portal and I'd like to schedule a meeting with my manager to discuss it.
+
+I'm available next week - please let me know what times work.
+
+Best regards,
+Alex`,
+        "Jan 15, 10:00 AM",
+        ["work", "important"],
+        true,
+        false,
+        false
+      ),
+      createEmail(
+        "archive-1-2",
+        { name: "Sarah Johnson", email: "sarah@example.com" },
+        "Re: Annual Performance Review - 2023",
+        `Hi Alex,
+
+Great! Let's schedule your review meeting for Wednesday, January 17th at 2:00 PM. Does that work for you?
+
+Best,
+Sarah (Your Manager)`,
+        "Jan 15, 2:00 PM",
+        ["work", "important"],
+        true,
+        false,
+        false
+      ),
+      createEmail(
+        "archive-1-3",
+        { name: "Alex Morgan", email: "alex@example.com" },
+        "Re: Annual Performance Review - 2023",
+        `Hi Sarah,
+
+Wednesday at 2:00 PM works perfectly for me. I'll come prepared with questions and my goals for the coming year.
+
+Looking forward to our discussion!
+
+Alex`,
+        "Jan 15, 2:30 PM",
+        ["work", "important"],
+        true,
+        false,
+        false
+      ),
+    ]
+  ),
+
+  createEmail(
+    "archive-2",
+    { name: "IT Support", email: "support@company.com" },
+    "Password Reset Confirmation",
+    `Hi Alex,
+
+Your password has been successfully reset.
+
+If you did not request this change, please contact IT support immediately.
+
+IT Support Team`,
+    "Feb 20, 11:30 AM",
+    ["work"],
+    true,
+    false,
+    false,
+    "archive",
+    []
+  ),
+
+  createEmail(
+    "archive-3",
+    { name: "Conference Organizers", email: "info@techconf.com" },
+    "TechConf 2023 - Thank You for Attending",
+    `Dear Alex,
+
+Thank you for attending TechConf 2023!
+
+We hope you found the conference valuable. Presentation slides and recordings are now available on our website.
+
+We look forward to seeing you next year!
+
+TechConf Team`,
+    "Mar 10, 2:00 PM",
+    ["work"],
+    true,
+    false,
+    false,
+    "archive",
+    [],
+    [
+      createEmail(
+        "archive-3-1",
+        { name: "Alex Morgan", email: "alex@example.com" },
+        "Re: TechConf 2023 - Thank You for Attending",
+        `Hi TechConf Team,
+
+Thank you for a great conference! I found the sessions on AI and machine learning particularly valuable.
+
+Could you please share the link to the presentation slides and recordings?
+
+Best,
+Alex`,
+        "Mar 10, 3:00 PM",
+        ["work"],
+        true,
+        false,
+        false
+      ),
+      createEmail(
+        "archive-3-2",
+        { name: "Conference Organizers", email: "info@techconf.com" },
+        "Re: TechConf 2023 - Thank You for Attending",
+        `Hi Alex,
+
+Glad you enjoyed the conference! Here's the link to all materials:
+
+https://techconf2023.com/materials
+
+The AI/ML sessions were among our most popular tracks this year. We're already planning even more content for next year!
+
+Best regards,
+TechConf Team`,
+        "Mar 10, 3:30 PM",
+        ["work"],
+        true,
+        false,
+        false
+      ),
+    ]
+  ),
+
+  createEmail(
+    "archive-4",
+    { name: "Finance Department", email: "finance@company.com" },
+    "Q4 2023 Expense Report Approved",
+    `Hi Alex,
+
+Your Q4 2023 expense report has been approved and processed.
+
+Total amount: $2,345.67
+Payment will be processed within 5-7 business days.
+
+Finance Team`,
+    "Jan 5, 10:00 AM",
+    ["finance"],
+    true,
+    false,
+    false,
+    "archive",
+    [attachments[4]],
+    [
+      createEmail(
+        "archive-4-1",
+        { name: "Alex Morgan", email: "alex@example.com" },
+        "Re: Q4 2023 Expense Report Approved",
+        `Thank you for the quick approval!
+
+I have a question about the payment timeline - will I receive the payment by January 15th?
+
+Best,
+Alex`,
+        "Jan 5, 11:00 AM",
+        ["finance"],
+        true,
+        false,
+        false
+      ),
+      createEmail(
+        "archive-4-2",
+        { name: "Finance Department", email: "finance@company.com" },
+        "Re: Q4 2023 Expense Report Approved",
+        `Hi Alex,
+
+Yes, you should receive the payment by January 15th at the latest. We typically process payments within 5-7 business days of approval.
+
+Let us know if you don't receive it by then.
+
+Finance Team`,
+        "Jan 5, 2:00 PM",
+        ["finance"],
+        true,
+        false,
+        false
+      ),
+      createEmail(
+        "archive-4-3",
+        { name: "Alex Morgan", email: "alex@example.com" },
+        "Re: Q4 2023 Expense Report Approved",
+        `Perfect, thanks for the confirmation!
+
+Alex`,
+        "Jan 5, 2:30 PM",
+        ["finance"],
+        true,
+        false,
+        false
+      ),
+    ]
+  ),
+
+  createEmail(
+    "archive-5",
+    { name: "Project Manager", email: "pm@company.com" },
+    "Project Alpha - Completion Summary",
+    `Team,
+
+Project Alpha has been successfully completed!
+
+Key achievements:
+- Delivered 2 weeks ahead of schedule
+- Under budget by 15%
+- All quality metrics exceeded
+
+Thank you all for your hard work and dedication. This was truly a team effort!
+
+Great job everyone!
+
+Project Manager`,
+    "Dec 20, 4:30 PM",
+    ["work", "project", "important"],
+    true,
+    true,
+    true,
+    "archive",
+    [],
+    [
+      createEmail(
+        "archive-5-1",
+        { name: "Alex Morgan", email: "alex@example.com" },
+        "Re: Project Alpha - Completion Summary",
+        `Fantastic news! This is a huge milestone for our team.
+
+Congratulations to everyone involved. The ahead-of-schedule delivery is especially impressive!
+
+Best,
+Alex`,
+        "Dec 20, 5:00 PM",
+        ["work", "project", "important"],
+        true,
+        false,
+        false
+      ),
+      createEmail(
+        "archive-5-2",
+        { name: "Noah Martinez", email: "noah@example.com" },
+        "Re: Project Alpha - Completion Summary",
+        `Thank you, Alex! I'm really proud of what we've accomplished together.
+
+The under-budget delivery is a testament to our team's efficiency. Can't wait for the next challenge!
+
+Noah`,
+        "Dec 20, 5:30 PM",
+        ["work", "project", "important"],
+        true,
+        false,
+        false
+      ),
+      createEmail(
+        "archive-5-3",
+        { name: "Project Manager", email: "pm@company.com" },
+        "Re: Project Alpha - Completion Summary",
+        `Thanks everyone! 
+
+I'll be scheduling a team celebration for next week. Details to follow.
+
+Let's all take a well-deserved break before the next project begins!
+
+Best,
+Project Manager`,
+        "Dec 21, 9:00 AM",
+        ["work", "project", "important"],
+        true,
+        false,
+        false
+      ),
+    ]
+  ),
 ];

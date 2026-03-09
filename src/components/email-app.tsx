@@ -5,6 +5,7 @@ import { useState, useMemo } from "react";
 import {
   Archive,
   ArrowLeft,
+  ArrowUpRightFromSquare,
   Bell,
   Check,
   ChevronDown,
@@ -16,6 +17,7 @@ import {
   ListFilter,
   MailOpen,
   MailX,
+  Minus,
   Paperclip,
   PenLine,
   Plus,
@@ -65,7 +67,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -104,10 +105,10 @@ const currentUser: UserType = {
 const folders: Folder[] = [
   { id: "inbox", name: "Inbox", icon: Inbox, count: 50 },
   { id: "drafts", name: "Drafts", icon: File, count: 5 },
-  { id: "sent", name: "Sent", icon: Send },
-  { id: "starred", name: "Starred", icon: Star, count: 15 },
-  { id: "trash", name: "Trash", icon: Trash2 },
-  { id: "archive", name: "Archive", icon: Archive },
+  { id: "sent", name: "Sent", icon: Send, count: 10 },
+  { id: "starred", name: "Starred", icon: Star, count: 18 },
+  { id: "trash", name: "Trash", icon: Trash2, count: 5 },
+  { id: "archive", name: "Archive", icon: Archive, count: 5 },
 ];
 
 const categories: Folder[] = [
@@ -242,8 +243,6 @@ function DownloadIcon(props: React.ComponentProps<typeof ArrowLeft>) {
 export function GmailApp() {
   // State
   const [emails, setEmails] = useState<Email[]>(initialEmails);
-  // Initialize with 50 emails - all loaded from emails-data.tsx
-  console.log('DEBUG: Initial emails loaded:', initialEmails.length);
   const [selectedFolder, setSelectedFolder] = useState<string>("inbox");
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
@@ -260,6 +259,21 @@ export function GmailApp() {
   const [showCcBcc, setShowCcBcc] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   
+  // Inbox tab state
+  const [inboxTab, setInboxTab] = useState<"primary" | "social" | "promotions" | "updates">("primary");
+  
+  // Inline reply state
+  const [showInlineReply, setShowInlineReply] = useState(false);
+  const [replyData, setReplyData] = useState({
+    message: "",
+    to: "",
+    cc: "",
+    bcc: "",
+  });
+  const [showCcBccReply, setShowCcBccReply] = useState(false);
+  const [isReplyExpanded, setIsReplyExpanded] = useState(false);
+  const [isForwardMode, setIsForwardMode] = useState(false);
+  
   // Settings state
   const [settings, setSettings] = useState({
     theme: "light" as "light" | "dark" | "system",
@@ -269,6 +283,9 @@ export function GmailApp() {
     desktopNotifications: false,
     signature: "Best,\nAlex",
   });
+  
+  // Compose state
+  const [isComposeMinimized, setIsComposeMinimized] = useState(false);
 
   // Filter emails based on selected folder and search query
   const filteredEmails = useMemo(() => {
@@ -281,7 +298,55 @@ export function GmailApp() {
 
       const emailFolder = email.folder || "inbox";
 
-      if (selectedFolder === "inbox") return emailFolder === "inbox" && matchesSearch;
+      if (selectedFolder === "inbox") {
+        // Filter by inbox tab - Primary shows most emails, others filter by specific labels
+        if (inboxTab === "primary") {
+          // Primary shows all inbox emails except those that clearly belong to other tabs
+          // Social: personal, travel emails
+          // Promotions: finance-related marketing/deals
+          // Updates: important notifications, updates
+          const isSocial = email.labels.includes("personal") || email.labels.includes("travel");
+          const isPromotions = email.labels.includes("finance") && 
+                               (email.subject.toLowerCase().includes("offer") || 
+                                email.subject.toLowerCase().includes("discount") ||
+                                email.subject.toLowerCase().includes("deal") ||
+                                email.subject.toLowerCase().includes("promotion") ||
+                                email.subject.toLowerCase().includes("sale"));
+          const isUpdates = email.labels.includes("important") || 
+                           email.subject.toLowerCase().includes("update") ||
+                           email.subject.toLowerCase().includes("notification") ||
+                           email.subject.toLowerCase().includes("alert");
+          
+          return emailFolder === "inbox" && !isSocial && !isPromotions && !isUpdates && matchesSearch;
+        }
+        if (inboxTab === "social") {
+          // Social: personal, travel emails
+          return emailFolder === "inbox" && 
+                 (email.labels.includes("personal") || email.labels.includes("travel")) && 
+                 matchesSearch;
+        }
+        if (inboxTab === "promotions") {
+          // Promotions: finance-related emails or marketing content
+          return emailFolder === "inbox" && 
+                 (email.labels.includes("finance") || 
+                  email.subject.toLowerCase().includes("offer") || 
+                  email.subject.toLowerCase().includes("discount") ||
+                  email.subject.toLowerCase().includes("deal") ||
+                  email.subject.toLowerCase().includes("promotion") ||
+                  email.subject.toLowerCase().includes("sale")) && 
+                 matchesSearch;
+        }
+        if (inboxTab === "updates") {
+          // Updates: important notifications, system updates
+          return emailFolder === "inbox" && 
+                 (email.labels.includes("important") || 
+                  email.subject.toLowerCase().includes("update") ||
+                  email.subject.toLowerCase().includes("notification") ||
+                  email.subject.toLowerCase().includes("alert") ||
+                  email.subject.toLowerCase().includes("maintenance")) && 
+                 matchesSearch;
+        }
+      }
       if (selectedFolder === "starred") return email.starred && matchesSearch;
       if (selectedFolder === "sent") return emailFolder === "sent" && matchesSearch;
       if (selectedFolder === "drafts") return emailFolder === "drafts" && matchesSearch;
@@ -302,9 +367,8 @@ export function GmailApp() {
 
       return matchesSearch;
     });
-    console.log('DEBUG: Total emails:', emails.length, 'Filtered emails:', result.length, 'Selected folder:', selectedFolder);
     return result;
-  }, [emails, selectedFolder, searchQuery]);
+  }, [emails, selectedFolder, searchQuery, inboxTab]);
 
   // Find current email index and navigate
   const navigateEmail = (direction: "next" | "prev") => {
@@ -396,24 +460,91 @@ export function GmailApp() {
     setSelectedEmails([]);
   };
 
-  const handleReply = (email: Email) => {
-    setComposeData({
-      to: email.from.email,
+  const handleReply = (email?: Email) => {
+    if (!email) return;
+    // Show inline reply instead of popup
+    setShowInlineReply(true);
+    setIsReplyExpanded(false);
+    setShowCcBccReply(false);
+    setIsForwardMode(false);
+    setReplyData({
+      to: email.from?.email || "",
       cc: "",
       bcc: "",
-      subject: `Re: ${email.subject}`,
-      message: `\n\n-------- Original Message --------\nFrom: ${email.from.name} <${email.from.email}>\nDate: ${email.time}\nSubject: ${email.subject}\n\n${email.message}`,
     });
+  };
+  
+  const handleInlineForward = (email?: Email) => {
+    if (!email) return;
+    // Show inline reply for forward with different setup
+    setShowInlineReply(true);
+    setIsReplyExpanded(true);
+    setShowCcBccReply(false);
+    setIsForwardMode(true);
+    setReplyData({
+      to: "",
+      cc: "",
+      bcc: "",
+    });
+  };
+  
+  const handleEditSubject = (email?: Email) => {
+    if (!email) return;
+    // Open pop-out compose with focus on subject
+    setComposeData({
+      to: email.from?.email || "",
+      cc: "",
+      bcc: "",
+      subject: `Re: ${email.subject || ""}`,
+      message: "",
+    });
+    setShowInlineReply(false);
     setIsComposeOpen(true);
+  };
+  
+  const handleSendReply = () => {
+    if (!selectedEmail || !replyData.message.trim()) return;
+    
+    const replyEmail: Email = {
+      id: Date.now().toString(),
+      from: {
+        name: currentUser.name,
+        email: currentUser.email,
+        avatar: currentUser.avatar,
+      },
+      to: {
+        name: selectedEmail.from?.name || selectedEmail.to?.name || "Recipient",
+        email: isForwardMode ? (replyData.to || "") : (replyData.to || selectedEmail.from?.email || selectedEmail.to?.email || ""),
+        avatar: selectedEmail.from?.avatar || selectedEmail.to?.avatar,
+      },
+      subject: isForwardMode 
+        ? `Fwd: ${selectedEmail.subject || ""}`
+        : `Re: ${selectedEmail.subject || ""}`,
+      message: replyData.message,
+      time: "Just now",
+      labels: [],
+      read: true,
+      starred: false,
+      important: false,
+      folder: "sent",
+    };
+    
+    setEmails((prevEmails) => [replyEmail, ...prevEmails]);
+    setShowInlineReply(false);
+    setIsReplyExpanded(false);
+    setShowCcBccReply(false);
+    setIsForwardMode(false);
+    setReplyData({ message: "", to: "", cc: "", bcc: "" });
   };
 
   const handleForward = (email: Email) => {
+    if (!email) return;
     setComposeData({
       to: "",
       cc: "",
       bcc: "",
-      subject: `Fwd: ${email.subject}`,
-      message: `\n\n-------- Forwarded Message --------\nFrom: ${email.from.name} <${email.from.email}>\nDate: ${email.time}\nSubject: ${email.subject}\n\n${email.message}`,
+      subject: `Fwd: ${email.subject || ""}`,
+      message: `\n\n-------- Forwarded Message --------\nFrom: ${email.from?.name || ""} <${email.from?.email || ""}>\nDate: ${email.time}\nSubject: ${email.subject}\n\n${email.message}`,
     });
     setIsComposeOpen(true);
   };
@@ -508,13 +639,18 @@ export function GmailApp() {
       );
     }
     setSelectedEmail(email);
+    setShowInlineReply(false);
+    setIsReplyExpanded(false);
+    setShowCcBccReply(false);
+    setIsForwardMode(false);
+    setReplyData({ message: "", to: "", cc: "", bcc: "" });
   };
 
   return (
     <TooltipProvider>
-      <div className="flex h-screen w-full flex-col overflow-hidden bg-white">
+      <div className="flex h-[100dvh] w-full flex-col bg-white overflow-hidden">
         {/* Header */}
-        <header className="flex h-16 items-center gap-4 border-b border-gray-200 bg-white px-4 lg:px-6">
+        <header className="flex h-16 items-center gap-4 border-b border-gray-200 bg-white px-4 lg:px-6 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -662,7 +798,7 @@ export function GmailApp() {
           </div>
         </header>
 
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 min-h-0">
           {/* Sidebar */}
           <div
             className={cn(
@@ -681,7 +817,7 @@ export function GmailApp() {
               </Button>
             </div>
 
-            <ScrollArea className="flex-1">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden">
               <div className="px-2 py-1">
                 <div className="space-y-1">
                   {folders.map((folder) => (
@@ -699,6 +835,14 @@ export function GmailApp() {
                         setSelectedFolder(folder.id);
                         setSelectedEmail(null);
                         setSelectedEmails([]);
+                        setShowInlineReply(false);
+                        setIsReplyExpanded(false);
+                        setShowCcBccReply(false);
+                        setIsForwardMode(false);
+                        setReplyData({ message: "", to: "", cc: "", bcc: "" });
+                        if (folder.id !== "inbox") {
+                          setInboxTab("primary");
+                        }
                       }}
                     >
                       <folder.icon
@@ -756,6 +900,11 @@ export function GmailApp() {
                         setSelectedFolder(category.id);
                         setSelectedEmail(null);
                         setSelectedEmails([]);
+                        setShowInlineReply(false);
+                        setIsReplyExpanded(false);
+                        setShowCcBccReply(false);
+                        setIsForwardMode(false);
+                        setReplyData({ message: "", to: "", cc: "", bcc: "" });
                       }}
                     >
                       <category.icon
@@ -826,7 +975,7 @@ export function GmailApp() {
                   ))}
                 </div>
               </div>
-            </ScrollArea>
+            </div>
 
             <div className="p-2">
               <Button
@@ -845,7 +994,7 @@ export function GmailApp() {
           </div>
 
           {/* Main content area */}
-          <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex flex-1 flex-col min-h-0">
             {/* Email list toolbar */}
             <div className="flex items-center border-b border-gray-200 px-4 py-2">
               <div className="flex items-center gap-2">
@@ -960,12 +1109,40 @@ export function GmailApp() {
             {!selectedEmail ? (
               /* Email list view */
               <>
-                <div className="border-b border-gray-200 px-4 py-2 bg-gray-50">
+                {/* Inbox Tabs - only show in inbox folder */}
+                {selectedFolder === "inbox" && (
+                  <div className="border-b border-gray-200 bg-white flex-shrink-0">
+                    <div className="flex items-center gap-1 px-4">
+                      {[
+                        { id: "primary" as const, label: "Primary" },
+                        { id: "social" as const, label: "Social" },
+                        { id: "promotions" as const, label: "Promotions" },
+                        { id: "updates" as const, label: "Updates" },
+                      ].map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setInboxTab(tab.id)}
+                          className={cn(
+                            "px-4 py-3 text-sm font-medium border-b-2 transition-colors",
+                            inboxTab === tab.id
+                              ? "border-blue-600 text-blue-600"
+                              : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
+                          )}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="border-b border-gray-200 px-4 py-2 bg-gray-50 flex-shrink-0">
                   <span className="text-sm text-gray-600 font-medium">
-                    {filteredEmails.length} emails in {folders.find(f => f.id === selectedFolder)?.name || selectedFolder}
+                    {filteredEmails.length} emails in {selectedFolder === "inbox" && inboxTab !== "primary" 
+                      ? inboxTab.charAt(0).toUpperCase() + inboxTab.slice(1)
+                      : folders.find(f => f.id === selectedFolder)?.name || selectedFolder}
                   </span>
                 </div>
-                <ScrollArea className="flex-1">
+                <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
                   <div className="divide-y divide-gray-100">
                   {filteredEmails.length > 0 ? (
                     filteredEmails.map((email) => (
@@ -1058,7 +1235,17 @@ export function GmailApp() {
                             <MailOpen className="mr-2 h-4 w-4" />
                             <span>Open</span>
                           </ContextMenuItem>
-                          <ContextMenuItem onClick={() => handleReply(email)}>
+                          <ContextMenuItem onClick={() => {
+                            setShowInlineReply(true);
+                            setIsReplyExpanded(false);
+                            setShowCcBccReply(false);
+                            setIsForwardMode(false);
+                            setReplyData({
+                              to: email.from?.email || "",
+                              cc: "",
+                              bcc: "",
+                            });
+                          }}>
                             <Reply className="mr-2 h-4 w-4" />
                             <span>Reply</span>
                           </ContextMenuItem>
@@ -1116,7 +1303,7 @@ export function GmailApp() {
                     </div>
                   )}
                 </div>
-                </ScrollArea>
+                </div>
               </>
             ) : (
               /* Email detail view */
@@ -1212,11 +1399,23 @@ export function GmailApp() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start">
-                        <DropdownMenuItem onClick={() => handleReply(selectedEmail)}>
+                        <DropdownMenuItem onClick={() => {
+                          if (selectedEmail) {
+                            setShowInlineReply(true);
+                            setIsReplyExpanded(false);
+                            setShowCcBccReply(false);
+                            setIsForwardMode(false);
+                            setReplyData({
+                              to: selectedEmail.from?.email || "",
+                              cc: "",
+                              bcc: "",
+                            });
+                          }
+                        }}>
                           <Reply className="mr-2 h-4 w-4" />
                           <span>Reply</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleForward(selectedEmail)}>
+                        <DropdownMenuItem onClick={() => selectedEmail && handleForward(selectedEmail)}>
                           <Forward className="mr-2 h-4 w-4" />
                           <span>Forward</span>
                         </DropdownMenuItem>
@@ -1248,7 +1447,7 @@ export function GmailApp() {
                 </div>
 
                 {/* Email content */}
-                <ScrollArea className="flex-1">
+                <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
                   <div className="p-6">
                     <div className="mb-6">
                       <h1 className="text-2xl font-normal text-gray-800">
@@ -1277,7 +1476,11 @@ export function GmailApp() {
                               </span>
                             </div>
                             <div className="mt-1 text-xs text-gray-500">
-                              <span>to me</span>
+                              {selectedEmail.from.email === currentUser.email ? (
+                                <span>to {selectedEmail.to.name || selectedEmail.to.email}</span>
+                              ) : (
+                                <span>to me</span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1345,7 +1548,19 @@ export function GmailApp() {
                     <div className="mt-6 flex gap-2">
                       <Button 
                         className="gap-2 bg-[#0b57d0] text-white hover:bg-[#0842a0]"
-                        onClick={() => handleReply(selectedEmail)}
+                        onClick={() => {
+                          if (selectedEmail) {
+                            setShowInlineReply(true);
+                            setIsReplyExpanded(false);
+                            setShowCcBccReply(false);
+                            setIsForwardMode(false);
+                            setReplyData({
+                              to: selectedEmail.from?.email || "",
+                              cc: "",
+                              bcc: "",
+                            });
+                          }
+                        }}
                       >
                         <Reply className="h-4 w-4" />
                         Reply
@@ -1353,14 +1568,223 @@ export function GmailApp() {
                       <Button
                         variant="outline"
                         className="gap-2 border-gray-300 text-gray-700"
-                        onClick={() => handleForward(selectedEmail)}
+                        onClick={() => selectedEmail && handleForward(selectedEmail)}
                       >
                         <Forward className="h-4 w-4" />
                         Forward
                       </Button>
                     </div>
+                    
+                    {/* Inline Reply Editor */}
+                    {showInlineReply && selectedEmail && (
+                      <div className="mt-6 border border-gray-300 rounded-lg shadow-sm overflow-hidden">
+                        <div className="bg-gray-50 border-b border-gray-200 px-4 py-2 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button 
+                                  type="button"
+                                  className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none p-1"
+                                >
+                                  <ChevronDown className="h-4 w-4" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start">
+                                <DropdownMenuItem onClick={() => {
+                                  if (selectedEmail) {
+                                    setShowInlineReply(true);
+                                    setIsReplyExpanded(false);
+                                    setShowCcBccReply(false);
+                                    setIsForwardMode(false);
+                                    setReplyData({
+                                      to: selectedEmail.from?.email || "",
+                                      cc: "",
+                                      bcc: "",
+                                    });
+                                  }
+                                }}>
+                                  <Reply className="mr-2 h-4 w-4" />
+                                  <span>Reply</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  if (selectedEmail) {
+                                    setShowInlineReply(true);
+                                    setIsReplyExpanded(true);
+                                    setShowCcBccReply(false);
+                                    setIsForwardMode(true);
+                                    setReplyData({
+                                      to: "",
+                                      cc: "",
+                                      bcc: "",
+                                    });
+                                  }
+                                }}>
+                                  <Forward className="mr-2 h-4 w-4" />
+                                  <span>Forward</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  if (selectedEmail) {
+                                    setComposeData({
+                                      to: selectedEmail.from?.email || "",
+                                      cc: "",
+                                      bcc: "",
+                                      subject: `Re: ${selectedEmail.subject || ""}`,
+                                      message: "",
+                                    });
+                                    setShowInlineReply(false);
+                                    setIsComposeOpen(true);
+                                  }
+                                }}>
+                                  <PenLine className="mr-2 h-4 w-4" />
+                                  <span>Edit subject</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  if (selectedEmail) {
+                                    setComposeData({
+                                      to: isForwardMode ? (replyData.to || "") : selectedEmail.from?.email || selectedEmail.to?.email || "",
+                                      cc: replyData.cc,
+                                      bcc: replyData.bcc,
+                                      subject: isForwardMode ? `Fwd: ${selectedEmail.subject || ""}` : `Re: ${selectedEmail.subject || ""}`,
+                                      message: replyData.message || "",
+                                    });
+                                    setShowInlineReply(false);
+                                    setIsComposeOpen(true);
+                                  }
+                                }}>
+                                  <ArrowUpRightFromSquare className="mr-2 h-4 w-4" />
+                                  <span>Pop out reply</span>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            <span className="text-sm font-medium text-gray-700">
+                              {isForwardMode ? "Forward" : "Reply"} to 
+                            </span>
+                            <span 
+                              className="cursor-pointer hover:underline text-blue-600 text-sm font-medium"
+                              onClick={() => setIsReplyExpanded(true)}
+                            >
+                              {selectedEmail.from?.name || selectedEmail.to?.name || "recipient"}
+                            </span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => {
+                              setShowInlineReply(false);
+                              setIsReplyExpanded(false);
+                              setShowCcBccReply(false);
+                              setIsForwardMode(false);
+                              setReplyData({ message: "", to: "", cc: "", bcc: "" });
+                            }}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        
+                        {/* Expandable recipient fields */}
+                        {isReplyExpanded && (
+                          <>
+                            <div className="border-b border-gray-100 px-4 py-2 flex-shrink-0">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-500">To:</span>
+                                <Input
+                                  placeholder={isForwardMode ? "Recipients" : (selectedEmail.from?.email || "recipient@example.com")}
+                                  value={replyData.to}
+                                  onChange={(e) => setReplyData({ ...replyData, to: e.target.value })}
+                                  className="h-6 border-0 p-0 text-sm focus-visible:ring-0 flex-1"
+                                />
+                              </div>
+                            </div>
+                            {showCcBccReply && (
+                              <>
+                                <div className="border-b border-gray-100 px-4 py-2 flex-shrink-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm text-gray-500">Cc:</span>
+                                    <Input
+                                      placeholder="Cc recipients"
+                                      value={replyData.cc}
+                                      onChange={(e) => setReplyData({ ...replyData, cc: e.target.value })}
+                                      className="h-6 border-0 p-0 text-sm focus-visible:ring-0 flex-1"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="border-b border-gray-100 px-4 py-2 flex-shrink-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm text-gray-500">Bcc:</span>
+                                    <Input
+                                      placeholder="Bcc recipients"
+                                      value={replyData.bcc}
+                                      onChange={(e) => setReplyData({ ...replyData, bcc: e.target.value })}
+                                      className="h-6 border-0 p-0 text-sm focus-visible:ring-0 flex-1"
+                                    />
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                            <div className="border-b border-gray-100 px-4 py-2 flex flex-wrap items-center gap-2 flex-shrink-0">
+                              {!showCcBccReply && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700 flex-shrink-0"
+                                  onClick={() => setShowCcBccReply(true)}
+                                >
+                                  Cc/Bcc
+                                </Button>
+                              )}
+                            </div>
+                          </>
+                        )}
+                        
+                        <Textarea
+                          placeholder={`Write ${isForwardMode ? "your message" : `your reply to ${selectedEmail.from?.name || selectedEmail.to?.name || "recipient"}`}...`}
+                          value={replyData.message}
+                          onChange={(e) => setReplyData({ ...replyData, message: e.target.value })}
+                          className="min-h-[150px] resize-none border-0 focus-visible:ring-0 rounded-none"
+                          autoFocus
+                        />
+                        <div className="border-t border-gray-200 px-4 py-3 flex items-center justify-between bg-gray-50">
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500">
+                              <Paperclip className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500">
+                              <Link2 className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500">
+                              <Smile className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setShowInlineReply(false);
+                                setIsReplyExpanded(false);
+                                setShowCcBccReply(false);
+                                setIsForwardMode(false);
+                                setReplyData({ message: "", to: "", cc: "", bcc: "" });
+                              }}
+                              className="text-gray-500"
+                            >
+                              Discard
+                            </Button>
+                            <Button
+                              onClick={handleSendReply}
+                              className="gap-2 bg-[#0b57d0] text-white hover:bg-[#0842a0]"
+                              disabled={!replyData.message?.trim()}
+                            >
+                              <Send className="h-4 w-4" />
+                              Send
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </ScrollArea>
+                </div>
               </div>
             )}
           </div>
@@ -1377,20 +1801,68 @@ export function GmailApp() {
 
         {/* Compose Email Dialog */}
         <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
-          <DialogContent className="max-w-[600px] !p-0 gap-0 bg-white">
-            <DialogHeader className="flex flex-row items-center justify-between space-y-0 border-b border-gray-200 p-4">
-              <DialogTitle className="text-sm font-medium text-gray-700">
-                New Message
-              </DialogTitle>
-            </DialogHeader>
-            <div className="flex flex-col">
-              <div className="border-b border-gray-100 px-4 py-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">From:</span>
-                  <span className="text-sm">{currentUser.email}</span>
-                </div>
+          <DialogContent 
+            className={cn(
+              "!fixed !bottom-6 !right-[88px] !top-auto !left-auto !translate-x-0 !translate-y-0 m-0 max-w-[500px] w-full !p-0 !gap-0 !bg-white rounded-t-lg rounded-b-lg border-0 shadow-2xl overflow-hidden !grid",
+              isComposeMinimized && "!h-12"
+            )}
+            showCloseButton={false}
+            showOverlay={false}
+          >
+            <DialogTitle className="sr-only !m-0 !p-0">
+              New Message
+            </DialogTitle>
+            {/* Header */}
+            <div className="flex flex-row items-center justify-between bg-[#202124] text-white cursor-pointer hover:bg-[#2d2e31] transition-colors flex-shrink-0"
+              onClick={() => setIsComposeMinimized(!isComposeMinimized)}
+            >
+              <div className="flex items-center gap-3 pl-3 py-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 text-gray-300 hover:text-white hover:bg-transparent"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsComposeMinimized(true);
+                  }}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                {!isComposeMinimized && (
+                  <span className="text-sm font-normal">
+                    New Message
+                  </span>
+                )}
               </div>
-              <div className="border-b border-gray-100 px-4 py-2">
+              <div className="flex items-center">
+                {!isComposeMinimized && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 text-gray-300 hover:text-white hover:bg-transparent"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 text-gray-300 hover:text-white hover:bg-transparent pr-3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsComposeOpen(false);
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            {!isComposeMinimized && (
+            <div className="flex flex-col flex-1 overflow-hidden">
+              <div className="border-b border-gray-100 px-4 py-2 flex-shrink-0">
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-500">To:</span>
                   <Input
@@ -1399,13 +1871,13 @@ export function GmailApp() {
                     onChange={(e) =>
                       setComposeData({ ...composeData, to: e.target.value })
                     }
-                    className="h-6 border-0 p-0 text-sm focus-visible:ring-0"
+                    className="h-6 border-0 p-0 text-sm focus-visible:ring-0 flex-1"
                   />
                 </div>
               </div>
               {showCcBcc && (
                 <>
-                  <div className="border-b border-gray-100 px-4 py-2">
+                  <div className="border-b border-gray-100 px-4 py-2 flex-shrink-0">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-500">Cc:</span>
                       <Input
@@ -1414,11 +1886,11 @@ export function GmailApp() {
                         onChange={(e) =>
                           setComposeData({ ...composeData, cc: e.target.value })
                         }
-                        className="h-6 border-0 p-0 text-sm focus-visible:ring-0"
+                        className="h-6 border-0 p-0 text-sm focus-visible:ring-0 flex-1"
                       />
                     </div>
                   </div>
-                  <div className="border-b border-gray-100 px-4 py-2">
+                  <div className="border-b border-gray-100 px-4 py-2 flex-shrink-0">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-500">Bcc:</span>
                       <Input
@@ -1427,97 +1899,104 @@ export function GmailApp() {
                         onChange={(e) =>
                           setComposeData({ ...composeData, bcc: e.target.value })
                         }
-                        className="h-6 border-0 p-0 text-sm focus-visible:ring-0"
+                        className="h-6 border-0 p-0 text-sm focus-visible:ring-0 flex-1"
                       />
                     </div>
                   </div>
                 </>
               )}
-              {!showCcBcc && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="ml-auto h-6 px-2 text-xs text-gray-500 hover:text-gray-700"
-                  onClick={() => setShowCcBcc(true)}
-                >
-                  Cc/Bcc
-                </Button>
-              )}
-              <div className="border-b border-gray-100 px-4 py-2">
-                <Input
-                  placeholder="Subject"
-                  value={composeData.subject}
-                  onChange={(e) =>
-                    setComposeData({ ...composeData, subject: e.target.value })
-                  }
-                  className="h-6 border-0 p-0 text-sm font-medium focus-visible:ring-0"
-                />
-              </div>
-              
-              {/* Formatting toolbar - simplified */}
-              <div className="flex items-center gap-1 border-b border-gray-100 px-4 py-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 text-gray-500 hover:bg-gray-100"
-                >
-                  <Smile className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 text-gray-500 hover:bg-gray-100"
-                >
-                  <Link2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 text-gray-500 hover:bg-gray-100"
-                >
-                  <ImageIcon className="h-4 w-4" />
-                </Button>
+              <div className="border-b border-gray-100 px-4 py-2 flex flex-wrap items-center gap-2 flex-shrink-0">
+                <div className="flex-1 min-w-0">
+                  <Input
+                    placeholder="Subject"
+                    value={composeData.subject}
+                    onChange={(e) =>
+                      setComposeData({ ...composeData, subject: e.target.value })
+                    }
+                    className="h-6 border-0 p-0 text-sm font-medium focus-visible:ring-0 w-full"
+                  />
+                </div>
+                {!showCcBcc && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700 flex-shrink-0"
+                    onClick={() => setShowCcBcc(true)}
+                  >
+                    Cc/Bcc
+                  </Button>
+                )}
               </div>
 
-              <Textarea
-                placeholder="Write your message..."
-                value={composeData.message}
-                onChange={(e) =>
-                  setComposeData({ ...composeData, message: e.target.value })
-                }
-                className="flex-1 resize-none border-0 p-4 focus-visible:ring-0"
-                rows={10}
-              />
+              {/* Message body with scrolling */}
+              <div className="flex-1 overflow-y-auto overflow-x-hidden">
+                <Textarea
+                  placeholder="Write your message..."
+                  value={composeData.message}
+                  onChange={(e) =>
+                    setComposeData({ ...composeData, message: e.target.value })
+                  }
+                  className="flex-1 resize-none border-0 p-4 focus-visible:ring-0 min-h-full"
+                  rows={15}
+                />
+              </div>
+
+              {/* Footer with formatting and actions */}
+              <div className="border-t border-gray-200 p-2 flex items-center justify-between flex-shrink-0 bg-white">
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-gray-500 hover:bg-gray-100"
+                  >
+                    <Paperclip className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-gray-500 hover:bg-gray-100"
+                  >
+                    <Link2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-gray-500 hover:bg-gray-100"
+                  >
+                    <Smile className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-gray-500 hover:bg-gray-100"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-gray-500 hover:bg-gray-100"
+                    onClick={() => {
+                      setComposeData({ to: "", cc: "", bcc: "", subject: "", message: "" });
+                      setShowCcBcc(false);
+                      setIsComposeOpen(false);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    onClick={handleSendEmail}
+                    className="gap-2 bg-[#0b57d0] text-white hover:bg-[#0842a0] font-normal"
+                    disabled={!composeData.to}
+                  >
+                    Send
+                  </Button>
+                </div>
+              </div>
             </div>
-            <DialogFooter className="flex items-center justify-between border-t border-gray-200 p-4">
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-gray-500"
-                >
-                  <Paperclip className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleSaveDraft}
-                  className="text-gray-500"
-                >
-                  Save draft
-                </Button>
-                <Button
-                  onClick={handleSendEmail}
-                  className="gap-2 bg-[#0b57d0] text-white hover:bg-[#0842a0]"
-                  disabled={!composeData.to}
-                >
-                  <Send className="h-4 w-4" />
-                  Send
-                </Button>
-              </div>
-            </DialogFooter>
+            )}
           </DialogContent>
         </Dialog>
 
