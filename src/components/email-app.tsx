@@ -91,6 +91,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { initialEmails } from "./emails-data";
 
 // Types
 type Folder = {
@@ -152,20 +153,20 @@ const currentUser: User = {
 };
 
 const folders: Folder[] = [
-  { id: "inbox", name: "Inbox", icon: Inbox, count: 8 },
-  { id: "drafts", name: "Drafts", icon: File, count: 0 },
+  { id: "inbox", name: "Inbox", icon: Inbox, count: 50 },
+  { id: "drafts", name: "Drafts", icon: File, count: 5 },
   { id: "sent", name: "Sent", icon: Send },
-  { id: "starred", name: "Starred", icon: Star, count: 3 },
+  { id: "starred", name: "Starred", icon: Star, count: 15 },
   { id: "trash", name: "Trash", icon: Trash2 },
   { id: "archive", name: "Archive", icon: Archive },
 ];
 
 const categories: Folder[] = [
-  { id: "social", name: "Social", icon: Users, count: 1 },
-  { id: "updates", name: "Updates", icon: Bell, count: 6 },
-  { id: "forums", name: "Forums", icon: Command, count: 2 },
-  { id: "promotions", name: "Promotions", icon: Tag, count: 2 },
-  { id: "shopping", name: "Shopping", icon: ShoppingCart, count: 1 },
+  { id: "social", name: "Social", icon: Users, count: 8 },
+  { id: "updates", name: "Updates", icon: Bell, count: 12 },
+  { id: "forums", name: "Forums", icon: Command, count: 5 },
+  { id: "promotions", name: "Promotions", icon: Tag, count: 7 },
+  { id: "shopping", name: "Shopping", icon: ShoppingCart, count: 3 },
 ];
 
 const labels: EmailLabel[] = [
@@ -200,256 +201,19 @@ const attachments: EmailAttachment[] = [
     type: "jpg",
     url: "#",
   },
-];
-
-// Initial emails data
-const initialEmails: Email[] = [
-  {
-    id: "1",
-    from: {
-      name: "Sophia White",
-      email: "sophiawhite@example.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    to: {
-      name: "Alex Morgan",
-      email: "alex@example.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    subject: "Team Dinner Next Week",
-    message: `Hi Alex,
-
-Let's have a team dinner next week to celebrate our success. We've achieved some significant milestones, and it's time to acknowledge our hard work and dedication.
-
-I've made reservations at Bistro Garden for Thursday at 7:00 PM. The restaurant has a great ambiance and excellent menu options that should accommodate everyone's preferences.
-
-Please confirm your availability and any dietary preferences. Looking forward to a fun and memorable dinner with the team!
-
-Best regards,
-Sophia`,
-    time: "Today, 10:32 AM",
-    labels: ["work", "meeting"],
-    read: false,
-    starred: true,
-    important: true,
-    attachments: [attachments[2]],
-    folder: "inbox",
-  },
-  {
-    id: "2",
-    from: {
-      name: "Daniel Johnson",
-      email: "daniel@example.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    to: {
-      name: "Alex Morgan",
-      email: "alex@example.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    subject: "Feedback Request on Q4 Financial Report",
-    message: `Hello Alex,
-
-I'd like your feedback on the latest Q4 financial report. We've made significant progress, and I value your input to ensure we're on the right track. 
-
-The report shows a 15% increase in revenue compared to Q3, with particularly strong performance in our new product lines. However, there are some areas where we might need to adjust our strategy for the upcoming quarter.
-
-I've attached the full report for your review. Could you please provide your thoughts by Friday?
-
-Thanks,
-Daniel`,
-    time: "Yesterday, 4:15 PM",
-    labels: ["work", "finance"],
-    read: true,
-    starred: false,
-    important: true,
-    attachments: [attachments[0]],
-    folder: "inbox",
-  },
-  {
-    id: "3",
-    from: {
-      name: "Ava Taylor",
-      email: "ava@example.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    to: {
-      name: "Alex Morgan",
-      email: "alex@example.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    subject: "Project Timeline Update",
-    message: `Hi Alex,
-
-Here's the updated timeline for our project. I've included all the key milestones and deadlines we discussed in our last meeting.
-
-The development phase is scheduled to complete by the end of this month, followed by two weeks of testing. We should be ready for the soft launch by the 15th of next month.
-
-Please review the attached timeline and let me know if you have any concerns or suggestions for adjustments.
-
-Best,
-Ava`,
-    time: "May 10, 2:30 PM",
-    labels: ["project", "work"],
-    read: true,
-    starred: true,
-    important: false,
-    attachments: [attachments[1]],
-    folder: "inbox",
-  },
   {
     id: "4",
-    from: {
-      name: "William Anderson",
-      email: "william@example.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    to: {
-      name: "Alex Morgan",
-      email: "alex@example.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    subject: "Product Launch Strategy Meeting",
-    message: `Dear Alex,
-
-I'd like to schedule a meeting to discuss our product launch strategy. The development team has made excellent progress, and we're on track for our planned release date.
-
-During the meeting, we'll cover:
-- Marketing campaign timeline
-- Press release strategy
-- Social media rollout
-- Customer feedback collection methods
-
-Would Wednesday at 2:00 PM work for you? If not, please suggest an alternative time.
-
-Regards,
-William`,
-    time: "May 8, 11:20 AM",
-    labels: ["meeting", "work", "important"],
-    read: true,
-    starred: false,
-    important: true,
-    folder: "inbox",
+    name: "Meeting_Notes.docx",
+    size: "156 KB",
+    type: "docx",
+    url: "#",
   },
   {
     id: "5",
-    from: {
-      name: "Mia Harris",
-      email: "mia@example.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    to: {
-      name: "Alex Morgan",
-      email: "alex@example.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    subject: "Vacation Plans for Next Month",
-    message: `Hey Alex,
-
-Just wanted to confirm our vacation plans for next month. I've booked the flights and accommodations as we discussed.
-
-We'll be flying out on the 10th at 11:00 AM and returning on the 20th. The beach house looks amazing, and it's just a 5-minute walk from the ocean.
-
-I've also made a list of activities and restaurants we might want to try while we're there. Let me know if you have any specific preferences!
-
-Can't wait!
-Mia`,
-    time: "May 5, 9:45 AM",
-    labels: ["personal", "travel"],
-    read: true,
-    starred: true,
-    important: false,
-    folder: "inbox",
-  },
-  {
-    id: "6",
-    from: {
-      name: "James Wilson",
-      email: "james@example.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    to: {
-      name: "Alex Morgan",
-      email: "alex@example.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    subject: "Monthly Budget Review",
-    message: `Hello Alex,
-
-It's time for our monthly budget review. I've analyzed the expenses for the past month, and there are a few items I'd like to discuss.
-
-Overall, we're within our projected budget, but there are a couple of areas where we might need to make adjustments. The marketing expenses were slightly higher than anticipated, but they've also yielded better results than expected.
-
-Let me know when you're available to go through the details.
-
-Best,
-James`,
-    time: "May 3, 3:20 PM",
-    labels: ["finance", "work"],
-    read: true,
-    starred: false,
-    important: true,
-    folder: "inbox",
-  },
-  {
-    id: "7",
-    from: {
-      name: "Emma Clark",
-      email: "emma@example.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    to: {
-      name: "Alex Morgan",
-      email: "alex@example.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    subject: "Weekend Hiking Trip",
-    message: `Hi Alex,
-
-Are you still up for the hiking trip this weekend? The weather forecast looks perfect - sunny with a high of 75°F.
-
-I've mapped out a trail that should take about 4 hours to complete, with some beautiful viewpoints along the way. We can meet at my place at 8:00 AM and drive together.
-
-Don't forget to bring plenty of water and some snacks!
-
-Cheers,
-Emma`,
-    time: "May 1, 10:15 AM",
-    labels: ["personal"],
-    read: true,
-    starred: false,
-    important: false,
-    folder: "inbox",
-  },
-  {
-    id: "8",
-    from: {
-      name: "Noah Martinez",
-      email: "noah@example.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    to: {
-      name: "Alex Morgan",
-      email: "alex@example.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    subject: "New Client Proposal",
-    message: `Dear Alex,
-
-I've drafted a proposal for the new client we discussed last week. The scope includes website redesign, SEO optimization, and a three-month social media campaign.
-
-Based on their requirements and our initial discussions, I've estimated the project timeline to be approximately 12 weeks. The budget aligns with similar projects we've done in the past.
-
-Please review the attached proposal and let me know if you'd like to make any changes before I send it to the client.
-
-Regards,
-Noah`,
-    time: "Apr 28, 2:45 PM",
-    labels: ["work", "project"],
-    read: true,
-    starred: true,
-    important: true,
-    folder: "inbox",
+    name: "Budget_2024.xlsx",
+    size: "890 KB",
+    type: "xlsx",
+    url: "#",
   },
 ];
 
@@ -1653,20 +1417,11 @@ export function GmailApp() {
 
         {/* Compose Email Dialog */}
         <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
-          <DialogContent className="fixed bottom-0 right-0 top-0 z-50 m-0 h-auto w-[500px] translate-x-0 translate-y-0 rounded-t-lg bg-white shadow-xl sm:bottom-auto sm:right-6 sm:top-6 sm:h-auto sm:max-w-[500px] sm:rounded-lg">
+          <DialogContent className="max-w-[600px] !p-0 gap-0 bg-white">
             <DialogHeader className="flex flex-row items-center justify-between space-y-0 border-b border-gray-200 p-4">
               <DialogTitle className="text-sm font-medium text-gray-700">
                 New Message
               </DialogTitle>
-              <DialogClose asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-gray-500"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </DialogClose>
             </DialogHeader>
             <div className="flex flex-col">
               <div className="border-b border-gray-100 px-4 py-2">
