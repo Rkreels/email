@@ -37,15 +37,11 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreVertical,
-  Clock,
-  FolderPlus,
-  Minimize,
-  Maximize2,
   X,
-  ImageIcon,
+  Menu,
   Smile,
-  Eye,
-  EyeOff,
+  ImageIcon,
+  RefreshCw,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -75,7 +71,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Tooltip,
@@ -144,7 +139,7 @@ type Email = {
   important: boolean;
   attachments?: EmailAttachment[];
   thread?: Email[];
-  folder?: string; // To track which folder the email is in
+  folder?: string;
 };
 
 type User = {
@@ -161,21 +156,20 @@ const currentUser: User = {
 };
 
 const folders: Folder[] = [
-  { id: "inbox", name: "Inbox", icon: Inbox, count: 128 },
-  { id: "drafts", name: "Drafts", icon: File, count: 9 },
+  { id: "inbox", name: "Inbox", icon: Inbox, count: 8 },
+  { id: "drafts", name: "Drafts", icon: File, count: 0 },
   { id: "sent", name: "Sent", icon: Send },
-  { id: "starred", name: "Starred", icon: Star, count: 24 },
-  { id: "important", name: "Important", icon: MailQuestion, count: 56 },
+  { id: "starred", name: "Starred", icon: Star, count: 3 },
   { id: "trash", name: "Trash", icon: Trash2 },
   { id: "archive", name: "Archive", icon: Archive },
 ];
 
 const categories: Folder[] = [
-  { id: "social", name: "Social", icon: Users, count: 972 },
-  { id: "updates", name: "Updates", icon: Bell, count: 342 },
-  { id: "forums", name: "Forums", icon: Command, count: 128 },
-  { id: "promotions", name: "Promotions", icon: Tag, count: 221 },
-  { id: "shopping", name: "Shopping", icon: ShoppingCart, count: 8 },
+  { id: "social", name: "Social", icon: Users, count: 1 },
+  { id: "updates", name: "Updates", icon: Bell, count: 6 },
+  { id: "forums", name: "Forums", icon: Command, count: 2 },
+  { id: "promotions", name: "Promotions", icon: Tag, count: 2 },
+  { id: "shopping", name: "Shopping", icon: ShoppingCart, count: 1 },
 ];
 
 const labels: EmailLabel[] = [
@@ -473,12 +467,6 @@ function getInitials(name: string) {
     .substring(0, 2);
 }
 
-function formatFileSize(bytes: number) {
-  if (bytes < 1024) return bytes + " B";
-  else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
-  else return (bytes / 1048576).toFixed(1) + " MB";
-}
-
 function getFileIcon(type: string) {
   switch (type) {
     case "pdf":
@@ -497,7 +485,7 @@ function getFileIcon(type: string) {
   }
 }
 
-// Additional components
+// LogOut icon component
 function LogOutIcon(props: React.ComponentProps<typeof LucideUser>) {
   return (
     <svg
@@ -519,28 +507,7 @@ function LogOutIcon(props: React.ComponentProps<typeof LucideUser>) {
   );
 }
 
-function RefreshCwIcon(props: React.ComponentProps<typeof LucideUser>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-      <path d="M21 3v5h-5" />
-      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-      <path d="M3 21v-5h5" />
-    </svg>
-  );
-}
-
+// Download icon component
 function DownloadIcon(props: React.ComponentProps<typeof LucideUser>) {
   return (
     <svg
@@ -562,7 +529,7 @@ function DownloadIcon(props: React.ComponentProps<typeof LucideUser>) {
   );
 }
 
-// Main component - exported as a named export instead of default export
+// Main component
 export function GmailApp() {
   // State
   const [emails, setEmails] = useState<Email[]>(initialEmails);
@@ -580,8 +547,6 @@ export function GmailApp() {
     message: "",
   });
   const [showCcBcc, setShowCcBcc] = useState(false);
-  const [isCommandOpen, setIsCommandOpen] = useState(false);
-  const [defaultLayout, setDefaultLayout] = useState([265, 440, 655]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   
   // Settings state
@@ -594,19 +559,6 @@ export function GmailApp() {
     signature: "Best,\nAlex",
   });
 
-  // Effect to handle keyboard shortcuts
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setIsCommandOpen((open) => !open);
-      }
-    };
-
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, []);
-
   // Filter emails based on selected folder and search query
   const filteredEmails = useMemo(() => {
     return emails.filter((email) => {
@@ -616,12 +568,10 @@ export function GmailApp() {
         email.from.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         email.message.toLowerCase().includes(searchQuery.toLowerCase());
 
-      // Check folder
       const emailFolder = email.folder || "inbox";
       
       if (selectedFolder === "inbox") return emailFolder === "inbox" && matchesSearch;
       if (selectedFolder === "starred") return email.starred && matchesSearch;
-      if (selectedFolder === "important") return email.important && matchesSearch;
       if (selectedFolder === "sent") return emailFolder === "sent" && matchesSearch;
       if (selectedFolder === "drafts") return emailFolder === "drafts" && matchesSearch;
       if (selectedFolder === "trash") return emailFolder === "trash" && matchesSearch;
@@ -656,11 +606,6 @@ export function GmailApp() {
     }
   };
 
-  const getLabelColor = (labelId: string) => {
-    const label = labels.find((l) => l.id === labelId);
-    return label?.color || "bg-gray-500";
-  };
-
   const handleSelectAllEmails = () => {
     if (selectedEmails.length === filteredEmails.length) {
       setSelectedEmails([]);
@@ -686,55 +631,51 @@ export function GmailApp() {
     );
   };
 
-  const handleToggleImportant = (emailId: string) => {
+  const handleDeleteEmails = (emailIds?: string[]) => {
+    const idsToDelete = emailIds || selectedEmails;
     setEmails((prevEmails) =>
       prevEmails.map((email) =>
-        email.id === emailId ? { ...email, important: !email.important } : email
-      )
-    );
-  };
-
-  const handleDeleteEmails = () => {
-    setEmails((prevEmails) =>
-      prevEmails.map((email) =>
-        selectedEmails.includes(email.id)
+        idsToDelete.includes(email.id)
           ? { ...email, folder: "trash" }
           : email
       )
     );
     setSelectedEmails([]);
-    if (selectedEmail && selectedEmails.includes(selectedEmail.id)) {
+    if (selectedEmail && idsToDelete.includes(selectedEmail.id)) {
       setSelectedEmail(null);
     }
   };
 
-  const handleArchiveEmails = () => {
+  const handleArchiveEmails = (emailIds?: string[]) => {
+    const idsToArchive = emailIds || selectedEmails;
     setEmails((prevEmails) =>
       prevEmails.map((email) =>
-        selectedEmails.includes(email.id)
+        idsToArchive.includes(email.id)
           ? { ...email, folder: "archive" }
           : email
       )
     );
     setSelectedEmails([]);
-    if (selectedEmail && selectedEmails.includes(selectedEmail.id)) {
+    if (selectedEmail && idsToArchive.includes(selectedEmail.id)) {
       setSelectedEmail(null);
     }
   };
 
-  const handleMarkAsRead = () => {
+  const handleMarkAsRead = (emailIds?: string[]) => {
+    const idsToMark = emailIds || selectedEmails;
     setEmails((prevEmails) =>
       prevEmails.map((email) =>
-        selectedEmails.includes(email.id) ? { ...email, read: true } : email
+        idsToMark.includes(email.id) ? { ...email, read: true } : email
       )
     );
     setSelectedEmails([]);
   };
 
-  const handleMarkAsUnread = () => {
+  const handleMarkAsUnread = (emailIds?: string[]) => {
+    const idsToMark = emailIds || selectedEmails;
     setEmails((prevEmails) =>
       prevEmails.map((email) =>
-        selectedEmails.includes(email.id) ? { ...email, read: false } : email
+        idsToMark.includes(email.id) ? { ...email, read: false } : email
       )
     );
     setSelectedEmails([]);
@@ -842,10 +783,22 @@ export function GmailApp() {
     });
   };
 
+  // Mark email as read when opened
+  const handleEmailClick = (email: Email) => {
+    if (!email.read) {
+      setEmails((prevEmails) =>
+        prevEmails.map((e) =>
+          e.id === email.id ? { ...e, read: true } : e
+        )
+      );
+    }
+    setSelectedEmail(email);
+  };
+
   return (
     <TooltipProvider>
       <div className="flex h-screen w-full flex-col overflow-hidden bg-white">
-        {/* Header - Gmail style */}
+        {/* Header */}
         <header className="flex h-16 items-center gap-4 border-b border-gray-200 bg-white px-4 lg:px-6">
           <div className="flex items-center gap-2">
             <Button
@@ -908,7 +861,7 @@ export function GmailApp() {
             </div>
           </div>
 
-          {/* Gmail search bar */}
+          {/* Search bar */}
           <div className="relative mx-4 flex-1 max-w-2xl">
             <div className="flex h-12 items-center rounded-lg bg-gray-100 px-4 hover:bg-white hover:shadow-md focus-within:bg-white focus-within:shadow-md">
               <Search className="mr-2 h-5 w-5 text-gray-500" />
@@ -935,36 +888,12 @@ export function GmailApp() {
                   variant="ghost"
                   size="icon"
                   className="h-10 w-10 rounded-full text-gray-500 hover:bg-gray-100"
-                >
-                  <HelpCircle className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Support</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 rounded-full text-gray-500 hover:bg-gray-100"
                   onClick={() => setIsSettingsOpen(true)}
                 >
                   <Settings className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Settings</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 rounded-full text-gray-500 hover:bg-gray-100"
-                >
-                  <Grid className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Google apps</TooltipContent>
             </Tooltip>
 
             <DropdownMenu>
@@ -1019,14 +948,14 @@ export function GmailApp() {
         </header>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* Gmail-style sidebar */}
+          {/* Sidebar */}
           <div
             className={cn(
-              "flex w-64 flex-col bg-white transition-all duration-300 ease-in-out",
+              "flex w-64 flex-shrink-0 flex-col bg-white transition-all duration-300 ease-in-out",
               isCollapsed && "w-20"
             )}
           >
-            {/* Gmail's compose button */}
+            {/* Compose button */}
             <div className="p-4">
               <Button
                 onClick={handleCompose}
@@ -1051,7 +980,11 @@ export function GmailApp() {
                           : "text-gray-700",
                         isCollapsed && "justify-center px-2"
                       )}
-                      onClick={() => setSelectedFolder(folder.id)}
+                      onClick={() => {
+                        setSelectedFolder(folder.id);
+                        setSelectedEmail(null);
+                        setSelectedEmails([]);
+                      }}
                     >
                       <folder.icon
                         className={cn(
@@ -1064,7 +997,7 @@ export function GmailApp() {
                       {!isCollapsed && (
                         <>
                           <span className="ml-4">{folder.name}</span>
-                          {folder.count !== undefined && (
+                          {folder.count !== undefined && folder.count > 0 && (
                             <span
                               className={cn(
                                 "ml-auto text-sm",
@@ -1104,7 +1037,11 @@ export function GmailApp() {
                           : "text-gray-700",
                         isCollapsed && "justify-center px-2"
                       )}
-                      onClick={() => setSelectedFolder(category.id)}
+                      onClick={() => {
+                        setSelectedFolder(category.id);
+                        setSelectedEmail(null);
+                        setSelectedEmails([]);
+                      }}
                     >
                       <category.icon
                         className={cn(
@@ -1117,7 +1054,7 @@ export function GmailApp() {
                       {!isCollapsed && (
                         <>
                           <span className="ml-4">{category.name}</span>
-                          {category.count !== undefined && (
+                          {category.count !== undefined && category.count > 0 && (
                             <span
                               className={cn(
                                 "ml-auto text-sm",
@@ -1192,8 +1129,8 @@ export function GmailApp() {
             </div>
           </div>
 
-          {/* Main content with resizable panels */}
-          <div className="flex flex-1 flex-col relative">
+          {/* Main content area */}
+          <div className="flex flex-1 flex-col overflow-hidden">
             {/* Email list toolbar */}
             <div className="flex items-center border-b border-gray-200 px-4 py-2">
               <div className="flex items-center gap-2">
@@ -1206,362 +1143,24 @@ export function GmailApp() {
                   className="h-4 w-4 rounded-sm border-gray-400"
                   aria-label="Select all"
                 />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full text-gray-500"
-                >
-                  <RefreshCwIcon className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full text-gray-500"
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {selectedEmails.length > 0 ? (
-                <div className="ml-4 flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full text-gray-500"
-                    onClick={handleArchiveEmails}
-                  >
-                    <Archive className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full text-gray-500"
-                    onClick={handleDeleteEmails}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full text-gray-500"
-                    onClick={handleMarkAsRead}
-                  >
-                    <MailOpen className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full text-gray-500"
-                    onClick={handleMarkAsUnread}
-                  >
-                    <MailX className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full text-gray-500"
-                  >
-                    <Clock className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full text-gray-500"
-                  >
-                    <FolderPlus className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full text-gray-500"
-                  >
-                    <Tag className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="ml-auto flex items-center gap-2">
-                  <Tabs defaultValue="primary" className="w-auto">
-                    <TabsList className="h-9 bg-transparent p-0">
-                      <TabsTrigger
-                        value="primary"
-                        className="h-9 rounded-none border-b-2 border-transparent px-3 py-0 data-[state=active]:border-blue-500 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-                      >
-                        Primary
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="social"
-                        className="h-9 rounded-none border-b-2 border-transparent px-3 py-0 data-[state=active]:border-blue-500 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-                      >
-                        Social
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="promotions"
-                        className="h-9 rounded-none border-b-2 border-transparent px-3 py-0 data-[state=active]:border-blue-500 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-                      >
-                        Promotions
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="updates"
-                        className="h-9 rounded-none border-b-2 border-transparent px-3 py-0 data-[state=active]:border-blue-500 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-                      >
-                        Updates
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </div>
-              )}
-            </div>
-
-            {/* Email list */}
-            <ScrollArea className="flex-1">
-              <div className="divide-y divide-gray-100">
-                {filteredEmails.length > 0 ? (
-                  filteredEmails.map((email) => (
-                    <ContextMenu key={email.id}>
-                      <ContextMenuTrigger asChild>
-                        <div
-                          className={cn(
-                            "flex cursor-pointer items-center gap-3 px-4 py-2 hover:shadow-md",
-                            !email.read && "bg-[#f2f6fc]",
-                            selectedEmail?.id === email.id && "bg-[#c2dbff]",
-                            selectedEmails.includes(email.id) && "bg-[#c2dbff]"
-                          )}
-                          onClick={() => setSelectedEmail(email)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Checkbox
-                              checked={selectedEmails.includes(email.id)}
-                              onCheckedChange={() =>
-                                handleSelectEmail(email.id)
-                              }
-                              onClick={(e) => e.stopPropagation()}
-                              className="h-4 w-4 rounded-sm border-gray-400"
-                            />
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className={cn(
-                                "h-6 w-6 rounded-full p-0",
-                                email.starred && "text-amber-500"
-                              )}
-                              onClick={(e) => handleStarEmail(email.id, e)}
-                            >
-                              <Star
-                                className={cn(
-                                  "h-4 w-4",
-                                  email.starred && "fill-amber-500"
-                                )}
-                              />
-                              <span className="sr-only">Star</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className={cn(
-                                "h-6 w-6 rounded-full p-0",
-                                email.important && "text-amber-500"
-                              )}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleToggleImportant(email.id);
-                              }}
-                            >
-                              <MailQuestion
-                                className={cn(
-                                  "h-4 w-4",
-                                  email.important && "fill-amber-500"
-                                )}
-                              />
-                              <span className="sr-only">Important</span>
-                            </Button>
-                          </div>
-
-                          <div className="flex flex-1 items-center gap-3 overflow-hidden py-1">
-                            <div className="w-44 flex-shrink-0 truncate font-medium">
-                              {email.from.name}
-                            </div>
-                            <div className="flex flex-1 items-center gap-2 overflow-hidden">
-                              <span
-                                className={cn(
-                                  "truncate",
-                                  !email.read && "font-bold"
-                                )}
-                              >
-                                {email.subject}
-                              </span>
-                              <span className="truncate text-sm text-gray-500">
-                                - {email.message.split("\n")[0]}
-                              </span>
-                            </div>
-                            <div className="ml-auto flex items-center gap-2">
-                              {email.labels.length > 0 && (
-                                <div className="flex gap-1">
-                                  {email.labels.slice(0, 2).map((labelId) => {
-                                    const label = labels.find(
-                                      (l) => l.id === labelId
-                                    );
-                                    return (
-                                      <div
-                                        key={labelId}
-                                        className={`h-2 w-2 rounded-full ${
-                                          label?.color || "bg-gray-400"
-                                        }`}
-                                      />
-                                    );
-                                  })}
-                                </div>
-                              )}
-                              {email.attachments &&
-                                email.attachments.length > 0 && (
-                                  <Paperclip className="h-4 w-4 text-gray-400" />
-                                )}
-                              <span className="whitespace-nowrap text-xs text-gray-500">
-                                {email.time}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </ContextMenuTrigger>
-                      <ContextMenuContent>
-                        <ContextMenuItem
-                          onClick={() => setSelectedEmail(email)}
-                        >
-                          <MailOpen className="mr-2 h-4 w-4" />
-                          <span>Open</span>
-                        </ContextMenuItem>
-                        <ContextMenuItem onClick={() => handleReply(email)}>
-                          <Reply className="mr-2 h-4 w-4" />
-                          <span>Reply</span>
-                        </ContextMenuItem>
-                        <ContextMenuItem onClick={() => handleForward(email)}>
-                          <Forward className="mr-2 h-4 w-4" />
-                          <span>Forward</span>
-                        </ContextMenuItem>
-                        <ContextMenuSeparator />
-                        <ContextMenuItem
-                          onClick={() => handleStarEmail(email.id)}
-                        >
-                          <Star className="mr-2 h-4 w-4" />
-                          <span>{email.starred ? "Unstar" : "Star"}</span>
-                        </ContextMenuItem>
-                        <ContextMenuItem
-                          onClick={() => handleSelectEmail(email.id)}
-                        >
-                          <Check className="mr-2 h-4 w-4" />
-                          <span>
-                            {selectedEmails.includes(email.id)
-                              ? "Deselect"
-                              : "Select"}
-                          </span>
-                        </ContextMenuItem>
-                        <ContextMenuSeparator />
-                        <ContextMenuItem
-                          onClick={() => {
-                            setSelectedEmails([email.id]);
-                            handleArchiveEmails();
-                          }}
-                        >
-                          <Archive className="mr-2 h-4 w-4" />
-                          <span>Archive</span>
-                        </ContextMenuItem>
-                        <ContextMenuItem
-                          onClick={() => {
-                            setSelectedEmails([email.id]);
-                            handleDeleteEmails();
-                          }}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          <span>Delete</span>
-                        </ContextMenuItem>
-                      </ContextMenuContent>
-                    </ContextMenu>
-                  ))
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-12">
-                    <div className="rounded-full bg-gray-100 p-3">
-                      <Inbox className="h-6 w-6 text-gray-400" />
-                    </div>
-                    <h3 className="mt-4 text-lg font-medium">
-                      No emails found
-                    </h3>
-                    <p className="mt-2 text-center text-sm text-gray-500">
-                      {searchQuery
-                        ? "Try a different search term"
-                        : "Your inbox is empty"}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-
-            {/* Email content panel - only shown when an email is selected */}
-            {selectedEmail && (
-              <div className="absolute inset-0 z-10 flex flex-col bg-white">
-                <div className="flex items-center justify-between border-b border-gray-200 px-4 py-2">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-full text-gray-500"
-                      onClick={() => setSelectedEmail(null)}
-                    >
-                      <ArrowLeft className="h-4 w-4" />
-                    </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 rounded-full text-gray-500"
                       onClick={() => {
-                        setSelectedEmails([selectedEmail.id]);
-                        handleArchiveEmails();
+                        // Refresh functionality - could trigger a refetch in a real app
+                        setEmails([...emails]);
                       }}
                     >
-                      <Archive className="h-4 w-4" />
+                      <RefreshCw className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-full text-gray-500"
-                      onClick={() => {
-                        setSelectedEmails([selectedEmail.id]);
-                        handleDeleteEmails();
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-full text-gray-500"
-                      onClick={() => {
-                        setSelectedEmails([selectedEmail.id]);
-                        handleMarkAsUnread();
-                      }}
-                    >
-                      <MailX className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-full text-gray-500"
-                    >
-                      <Clock className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-full text-gray-500"
-                    >
-                      <FolderPlus className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-full text-gray-500"
-                    >
-                      <Tag className="h-4 w-4" />
-                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Refresh</TooltipContent>
+                </Tooltip>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -1569,6 +1168,338 @@ export function GmailApp() {
                     >
                       <MoreVertical className="h-4 w-4" />
                     </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem onClick={() => handleMarkAsRead()}>
+                      <MailOpen className="mr-2 h-4 w-4" />
+                      <span>Mark all as read</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSelectedEmails(filteredEmails.map(e => e.id))}>
+                      <Check className="mr-2 h-4 w-4" />
+                      <span>Select all</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Selection action toolbar */}
+              {selectedEmails.length > 0 && (
+                <div className="ml-4 flex items-center gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full text-gray-500"
+                        onClick={() => handleArchiveEmails()}
+                      >
+                        <Archive className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Archive</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full text-gray-500"
+                        onClick={() => handleDeleteEmails()}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Delete</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full text-gray-500"
+                        onClick={() => handleMarkAsRead()}
+                      >
+                        <MailOpen className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Mark as read</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full text-gray-500"
+                        onClick={() => handleMarkAsUnread()}
+                      >
+                        <MailX className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Mark as unread</TooltipContent>
+                  </Tooltip>
+                </div>
+              )}
+            </div>
+
+            {/* Email list or Email view - conditional rendering without absolute positioning */}
+            {!selectedEmail ? (
+              /* Email list view */
+              <ScrollArea className="flex-1">
+                <div className="divide-y divide-gray-100">
+                  {filteredEmails.length > 0 ? (
+                    filteredEmails.map((email) => (
+                      <ContextMenu key={email.id}>
+                        <ContextMenuTrigger asChild>
+                          <div
+                            className={cn(
+                              "flex cursor-pointer items-center gap-3 px-4 py-2 hover:shadow-md",
+                              !email.read && "bg-[#f2f6fc]",
+                              selectedEmails.includes(email.id) && "bg-[#c2dbff]"
+                            )}
+                            onClick={() => handleEmailClick(email)}
+                          >
+                            <div className="flex items-center gap-3">
+                              <Checkbox
+                                checked={selectedEmails.includes(email.id)}
+                                onCheckedChange={() =>
+                                  handleSelectEmail(email.id)
+                                }
+                                onClick={(e) => e.stopPropagation()}
+                                className="h-4 w-4 rounded-sm border-gray-400"
+                              />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className={cn(
+                                  "h-6 w-6 rounded-full p-0",
+                                  email.starred && "text-amber-500"
+                                )}
+                                onClick={(e) => handleStarEmail(email.id, e)}
+                              >
+                                <Star
+                                  className={cn(
+                                    "h-4 w-4",
+                                    email.starred && "fill-amber-500"
+                                  )}
+                                />
+                                <span className="sr-only">Star</span>
+                              </Button>
+                            </div>
+
+                            <div className="flex flex-1 items-center gap-3 overflow-hidden py-1">
+                              <div className="w-44 flex-shrink-0 truncate font-medium">
+                                {email.from.name}
+                              </div>
+                              <div className="flex flex-1 items-center gap-2 overflow-hidden">
+                                <span
+                                  className={cn(
+                                    "truncate",
+                                    !email.read && "font-bold"
+                                  )}
+                                >
+                                  {email.subject}
+                                </span>
+                                <span className="truncate text-sm text-gray-500">
+                                  - {email.message.split("\n")[0]}
+                                </span>
+                              </div>
+                              <div className="ml-auto flex items-center gap-2">
+                                {email.labels.length > 0 && (
+                                  <div className="flex gap-1">
+                                    {email.labels.slice(0, 2).map((labelId) => {
+                                      const label = labels.find(
+                                        (l) => l.id === labelId
+                                      );
+                                      return (
+                                        <div
+                                          key={labelId}
+                                          className={`h-2 w-2 rounded-full ${
+                                            label?.color || "bg-gray-400"
+                                          }`}
+                                        />
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                                {email.attachments &&
+                                  email.attachments.length > 0 && (
+                                    <Paperclip className="h-4 w-4 text-gray-400" />
+                                  )}
+                                <span className="whitespace-nowrap text-xs text-gray-500">
+                                  {email.time}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent>
+                          <ContextMenuItem onClick={() => handleEmailClick(email)}>
+                            <MailOpen className="mr-2 h-4 w-4" />
+                            <span>Open</span>
+                          </ContextMenuItem>
+                          <ContextMenuItem onClick={() => handleReply(email)}>
+                            <Reply className="mr-2 h-4 w-4" />
+                            <span>Reply</span>
+                          </ContextMenuItem>
+                          <ContextMenuItem onClick={() => handleForward(email)}>
+                            <Forward className="mr-2 h-4 w-4" />
+                            <span>Forward</span>
+                          </ContextMenuItem>
+                          <ContextMenuSeparator />
+                          <ContextMenuItem onClick={() => handleStarEmail(email.id)}>
+                            <Star className="mr-2 h-4 w-4" />
+                            <span>{email.starred ? "Unstar" : "Star"}</span>
+                          </ContextMenuItem>
+                          <ContextMenuItem onClick={() => handleSelectEmail(email.id)}>
+                            <Check className="mr-2 h-4 w-4" />
+                            <span>
+                              {selectedEmails.includes(email.id)
+                                ? "Deselect"
+                                : "Select"}
+                            </span>
+                          </ContextMenuItem>
+                          <ContextMenuSeparator />
+                          <ContextMenuItem
+                            onClick={() => {
+                              handleArchiveEmails([email.id]);
+                            }}
+                          >
+                            <Archive className="mr-2 h-4 w-4" />
+                            <span>Archive</span>
+                          </ContextMenuItem>
+                          <ContextMenuItem
+                            onClick={() => {
+                              handleDeleteEmails([email.id]);
+                            }}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete</span>
+                          </ContextMenuItem>
+                        </ContextMenuContent>
+                      </ContextMenu>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <div className="rounded-full bg-gray-100 p-3">
+                        <Inbox className="h-6 w-6 text-gray-400" />
+                      </div>
+                      <h3 className="mt-4 text-lg font-medium">
+                        No emails found
+                      </h3>
+                      <p className="mt-2 text-center text-sm text-gray-500">
+                        {searchQuery
+                          ? "Try a different search term"
+                          : "Your inbox is empty"}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            ) : (
+              /* Email detail view */
+              <div className="flex flex-1 flex-col overflow-hidden">
+                {/* Email toolbar */}
+                <div className="flex items-center justify-between border-b border-gray-200 px-4 py-2">
+                  <div className="flex items-center gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full text-gray-500"
+                          onClick={() => setSelectedEmail(null)}
+                        >
+                          <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Back</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full text-gray-500"
+                          onClick={() => handleArchiveEmails([selectedEmail.id])}
+                        >
+                          <Archive className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Archive</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full text-gray-500"
+                          onClick={() => handleDeleteEmails([selectedEmail.id])}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Delete</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full text-gray-500"
+                          onClick={() => handleMarkAsUnread([selectedEmail.id])}
+                        >
+                          <MailX className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Mark as unread</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={cn(
+                            "h-8 w-8 rounded-full",
+                            selectedEmail.starred && "text-amber-500"
+                          )}
+                          onClick={(e) =>
+                            handleStarEmail(selectedEmail.id, e)
+                          }
+                        >
+                          <Star
+                            className={cn(
+                              "h-4 w-4",
+                              selectedEmail.starred && "fill-amber-500"
+                            )}
+                          />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {selectedEmail.starred ? "Unstar" : "Star"}
+                      </TooltipContent>
+                    </Tooltip>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full text-gray-500"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        <DropdownMenuItem onClick={() => handleReply(selectedEmail)}>
+                          <Reply className="mr-2 h-4 w-4" />
+                          <span>Reply</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleForward(selectedEmail)}>
+                          <Forward className="mr-2 h-4 w-4" />
+                          <span>Forward</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
@@ -1593,6 +1524,8 @@ export function GmailApp() {
                     </Button>
                   </div>
                 </div>
+
+                {/* Email content */}
                 <ScrollArea className="flex-1">
                   <div className="p-6">
                     <div className="mb-6">
@@ -1621,62 +1554,18 @@ export function GmailApp() {
                                 &lt;{selectedEmail.from.email}&gt;
                               </span>
                             </div>
-                            <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                            <div className="mt-1 text-xs text-gray-500">
                               <span>to me</span>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-4 w-4 p-0 text-gray-400"
-                              >
-                                <ChevronDown className="h-3 w-3" />
-                              </Button>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-500">
-                            {selectedEmail.time}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className={cn(
-                              "h-8 w-8 rounded-full",
-                              selectedEmail.starred && "text-amber-500"
-                            )}
-                            onClick={(e) =>
-                              handleStarEmail(selectedEmail.id, e)
-                            }
-                          >
-                            <Star
-                              className={cn(
-                                "h-4 w-4",
-                                selectedEmail.starred && "fill-amber-500"
-                              )}
-                            />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 rounded-full text-gray-500"
-                            onClick={() => handleReply(selectedEmail)}
-                          >
-                            <Reply className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 rounded-full text-gray-500"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
+                        <div className="text-xs text-gray-500">
+                          {selectedEmail.time}
                         </div>
                       </div>
                     </div>
-                    <div className="prose prose-sm max-w-none">
-                      {selectedEmail.message.split("\n").map((paragraph, i) => (
-                        <p key={i}>{paragraph}</p>
-                      ))}
+                    <div className="prose prose-sm max-w-none whitespace-pre-line">
+                      {selectedEmail.message}
                     </div>
                     {selectedEmail.attachments &&
                       selectedEmail.attachments.length > 0 && (
@@ -1771,31 +1660,15 @@ export function GmailApp() {
               <DialogTitle className="text-sm font-medium text-gray-700">
                 New Message
               </DialogTitle>
-              <div className="flex items-center gap-1">
+              <DialogClose asChild>
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 text-gray-500"
                 >
-                  <Minimize className="h-4 w-4" />
+                  <X className="h-4 w-4" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-gray-500"
-                >
-                  <Maximize2 className="h-4 w-4" />
-                </Button>
-                <DialogClose asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 text-gray-500"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </DialogClose>
-              </div>
+              </DialogClose>
             </DialogHeader>
             <div className="flex flex-col">
               <div className="border-b border-gray-100 px-4 py-2">
@@ -1868,7 +1741,7 @@ export function GmailApp() {
                 />
               </div>
               
-              {/* Formatting toolbar */}
+              {/* Formatting toolbar - simplified */}
               <div className="flex items-center gap-1 border-b border-gray-100 px-4 py-2">
                 <Button
                   variant="ghost"
@@ -1877,29 +1750,6 @@ export function GmailApp() {
                 >
                   <Smile className="h-4 w-4" />
                 </Button>
-                <Separator orientation="vertical" className="mx-1 h-4" />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 text-gray-500 hover:bg-gray-100"
-                >
-                  <span className="text-sm font-bold">B</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 text-gray-500 hover:bg-gray-100"
-                >
-                  <span className="text-sm italic">I</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 text-gray-500 hover:bg-gray-100"
-                >
-                  <span className="text-sm underline">U</span>
-                </Button>
-                <Separator orientation="vertical" className="mx-1 h-4" />
                 <Button
                   variant="ghost"
                   size="sm"
@@ -1934,13 +1784,6 @@ export function GmailApp() {
                   className="h-8 w-8 text-gray-500"
                 >
                   <Paperclip className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-gray-500"
-                >
-                  <ImageIcon className="h-4 w-4" />
                 </Button>
               </div>
               <div className="flex items-center gap-2">
@@ -2033,72 +1876,6 @@ export function GmailApp() {
                 </div>
               </div>
 
-              {/* Conversation View */}
-              <div>
-                <h3 className="mb-3 text-sm font-medium">Conversation View</h3>
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <p className="text-sm font-medium">Conversation view</p>
-                    <p className="text-xs text-gray-500">Group emails by conversation</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setSettings({ ...settings, conversationView: !settings.conversationView })}
-                  >
-                    {settings.conversationView ? (
-                      <Eye className="h-4 w-4" />
-                    ) : (
-                      <EyeOff className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Auto Expand */}
-              <div>
-                <h3 className="mb-3 text-sm font-medium">Reading</h3>
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <p className="text-sm font-medium">Auto-expand conversations</p>
-                    <p className="text-xs text-gray-500">Always show full conversations</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setSettings({ ...settings, autoExpand: !settings.autoExpand })}
-                  >
-                    {settings.autoExpand ? (
-                      <Eye className="h-4 w-4" />
-                    ) : (
-                      <EyeOff className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Notifications */}
-              <div>
-                <h3 className="mb-3 text-sm font-medium">Notifications</h3>
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <p className="text-sm font-medium">Desktop notifications</p>
-                    <p className="text-xs text-gray-500">Get notified of new emails</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setSettings({ ...settings, desktopNotifications: !settings.desktopNotifications })}
-                  >
-                    {settings.desktopNotifications ? (
-                      <Eye className="h-4 w-4" />
-                    ) : (
-                      <EyeOff className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-
               {/* Signature */}
               <div>
                 <h3 className="mb-3 text-sm font-medium">Signature</h3>
@@ -2124,27 +1901,5 @@ export function GmailApp() {
         </Sheet>
       </div>
     </TooltipProvider>
-  );
-}
-
-// Missing Menu icon component
-function Menu(props: React.ComponentProps<typeof LucideUser>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="4" x2="20" y1="12" y2="12" />
-      <line x1="4" x2="20" y1="6" y2="6" />
-      <line x1="4" x2="20" y1="18" y2="18" />
-    </svg>
   );
 }
