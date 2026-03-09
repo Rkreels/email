@@ -1,7 +1,7 @@
 "use client";
 
 import type * as React from "react";
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Archive,
   ArrowLeft,
@@ -13,11 +13,8 @@ import {
   FileText,
   Forward,
   Inbox,
-  Link2,
   ListFilter,
   MailOpen,
-  MailPlus,
-  MailQuestion,
   MailX,
   Paperclip,
   PenLine,
@@ -27,21 +24,20 @@ import {
   Send,
   Settings,
   ShoppingCart,
+  Smile,
   Star,
   Tag,
   Trash2,
-  LucideUser,
+  User,
   Users,
-  HelpCircle,
-  Grid,
   ChevronLeft,
   ChevronRight,
   MoreVertical,
   X,
   Menu,
-  Smile,
-  ImageIcon,
   RefreshCw,
+  Link2,
+  ImageIcon,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -486,7 +482,7 @@ function getFileIcon(type: string) {
 }
 
 // LogOut icon component
-function LogOutIcon(props: React.ComponentProps<typeof LucideUser>) {
+function LogOutIcon(props: React.ComponentProps<typeof ArrowLeft>) {
   return (
     <svg
       {...props}
@@ -508,7 +504,7 @@ function LogOutIcon(props: React.ComponentProps<typeof LucideUser>) {
 }
 
 // Download icon component
-function DownloadIcon(props: React.ComponentProps<typeof LucideUser>) {
+function DownloadIcon(props: React.ComponentProps<typeof ArrowLeft>) {
   return (
     <svg
       {...props}
@@ -600,7 +596,8 @@ export function GmailApp() {
     const currentIndex = filteredEmails.findIndex(e => e.id === selectedEmail.id);
     if (currentIndex === -1) return;
     
-    let newIndex = direction === "next" ? currentIndex - 1 : currentIndex + 1;
+    // next = newer email (lower index), prev = older email (higher index)
+    let newIndex = direction === "next" ? currentIndex + 1 : currentIndex - 1;
     if (newIndex >= 0 && newIndex < filteredEmails.length) {
       setSelectedEmail(filteredEmails[newIndex]);
     }
@@ -662,7 +659,8 @@ export function GmailApp() {
   };
 
   const handleMarkAsRead = (emailIds?: string[]) => {
-    const idsToMark = emailIds || selectedEmails;
+    // If no emailIds provided, mark ALL filtered emails as read
+    const idsToMark = emailIds || filteredEmails.map((email) => email.id);
     setEmails((prevEmails) =>
       prevEmails.map((email) =>
         idsToMark.includes(email.id) ? { ...email, read: true } : email
@@ -934,7 +932,7 @@ export function GmailApp() {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
-                  <LucideUser className="mr-2 h-4 w-4" />
+                  <User className="mr-2 h-4 w-4" />
                   <span>Manage your Google Account</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -1170,8 +1168,8 @@ export function GmailApp() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
-                    <DropdownMenuItem onClick={() => handleMarkAsRead()}>
-                      <MailOpen className="mr-2 h-4 w-4" />
+                    <DropdownMenuItem onClick={() => handleMarkAsRead(filteredEmails.map(e => e.id))}>
+                      <Check className="mr-2 h-4 w-4" />
                       <span>Mark all as read</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setSelectedEmails(filteredEmails.map(e => e.id))}>
